@@ -64,7 +64,9 @@ private:
   std::fstream inputFile;
   G4String vectorFileName;
   G4bool   GenerateVertexInRock;
-
+  G4bool   usePoissonPMT;
+  G4double poissonPMTMean;
+  
   // These go with jhfNtuple
   G4int mode;
   G4int vtxvol;
@@ -105,6 +107,11 @@ public:
   inline G4bool IsGeneratingVertexInRock() { return GenerateVertexInRock; }
   inline void SetGenerateVertexInRock(G4bool choice) { GenerateVertexInRock = choice; }
 
+  inline void SetPoissonPMT(G4bool choice) { usePoissonPMT = choice; }
+  inline G4bool IsUsingPoissonPMT(){ return usePoissonPMT; }
+  
+  inline void SetPoissonPMTMean(G4double val){ poissonPMTMean = val; }
+  inline G4double GetPoissonPMTMean(){ return poissonPMTMean; }
 };
 
 #endif

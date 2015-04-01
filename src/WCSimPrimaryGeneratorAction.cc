@@ -85,6 +85,9 @@ WCSimPrimaryGeneratorAction::~WCSimPrimaryGeneratorAction()
 void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
 
+  // If using the poissonPMT method of artificially generating PE's on the PMT's, skip all primary particle generation
+  if ( usePoissonPMT ) return;
+
   // We will need a particle table
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
 

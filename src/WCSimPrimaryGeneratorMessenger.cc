@@ -2,6 +2,8 @@
 #include "WCSimPrimaryGeneratorAction.hh"
 #include "G4UIdirectory.hh"
 #include "G4UIcmdWithAString.hh"
+#include "G4UIcmdWithABool.hh"
+#include "G4UIcmdWithADouble.hh"
 #include "G4ios.hh"
 
 WCSimPrimaryGeneratorMessenger::WCSimPrimaryGeneratorMessenger(WCSimPrimaryGeneratorAction* pointerToAction)
@@ -24,6 +26,17 @@ WCSimPrimaryGeneratorMessenger::WCSimPrimaryGeneratorMessenger(WCSimPrimaryGener
   fileNameCmd->SetGuidance(" Enter the file name of the vector file");
   fileNameCmd->SetParameterName("fileName",true);
   fileNameCmd->SetDefaultValue("inputvectorfile");
+
+  //C. Vilela: Adding PMTPoisson for generating photoelectrons directly on PMTs according to a Poisson distribution.
+  poisCmd = new G4UIcmdWithABool("/mygen/pmtPoisson",this);
+  poisCmd->SetGuidance("Flag for generating photoelectrons directly on PMTs according to a Poisson distribution. If this flag is set to true no primary particles will be generated. Dark noise will still be generated, so for a pure Poisson distribution set the dark rate to 0 Hz.");
+  poisCmd->SetGuidance("Set poisson mean with /mygen/poissonMean");
+  poisCmd->SetParameterName("pmtPoisson", true);
+
+  poisMeanCmd = new G4UIcmdWithADouble("/mygen/poissonMean",this);
+  poisMeanCmd->SetGuidance("Set Poisson mean to be used with /mygen/pmtPoisson. Defaults to 1.");
+  poisMeanCmd->SetParameterName("poissonMean", true);
+  poisMeanCmd->SetDefaultValue(1);
 }
 
 WCSimPrimaryGeneratorMessenger::~WCSimPrimaryGeneratorMessenger()
@@ -62,6 +75,20 @@ void WCSimPrimaryGeneratorMessenger::SetNewValue(G4UIcommand * command,G4String 
     G4cout << "Input vector file set to " << newValue << G4endl;
   }
 
+  if( command == poisCmd )
+    {
+      if ( poisCmd->GetNewBoolValue(newValue) ){
+	myAction->SetPoissonPMT(true);
+	G4cout << "Running with PoissonPMT flag. Photoelectrons will be generated directly on the PMTs according to a Poisson distribuition. Primary particle generation will be turned off !!!" << G4endl;
+      }
+      else myAction->SetPoissonPMT(false);
+    }
+  
+  if( command == poisMeanCmd )
+    {
+      myAction->SetPoissonPMTMean(poisMeanCmd->GetNewDoubleValue(newValue));
+      G4cout << "PoissonPMT mean set to: " << poisMeanCmd->GetNewDoubleValue(newValue) << G4endl;
+    }
 }
 
 G4String WCSimPrimaryGeneratorMessenger::GetCurrentValue(G4UIcommand* command)
@@ -77,7 +104,7 @@ G4String WCSimPrimaryGeneratorMessenger::GetCurrentValue(G4UIcommand* command)
     else if(myAction->IsUsingLaserEvtGenerator())
       { cv = "laser"; }   //T. Akiri: Addition of laser
   }
-  
+ 
   return cv;
 }
 
