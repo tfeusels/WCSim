@@ -38,6 +38,8 @@
 #include "WCSimRandomParameters.hh"
 #include "TStopwatch.h"
 
+#include "WCSimOpticalPhotonTrackInfo.hh"
+#include "skqtfitscat.hh"
 
 #define _SAVE_RAW_HITS
 
@@ -56,10 +58,16 @@ WCSimEventAction::WCSimEventAction(WCSimRunAction* myRun,
 
 WCSimEventAction::~WCSimEventAction(){}
 
-void WCSimEventAction::BeginOfEventAction(const G4Event*){}
+void WCSimEventAction::BeginOfEventAction(const G4Event*){
+     if(WCSimOpticalPhotonTrackInfo::instance()->isEnabled()) 
+    WCSimOpticalPhotonTrackInfo::instance()->reset();
+
+}
 
 void WCSimEventAction::EndOfEventAction(const G4Event* evt)
 {
+  if(WCSimOpticalPhotonTrackInfo::instance()->isEnabled())
+    fillscattable();
 
   // ----------------------------------------------------------------------
   //  Get Particle Table
