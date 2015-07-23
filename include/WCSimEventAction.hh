@@ -22,7 +22,7 @@ private:
   WCSimRunAction* runAction;
   WCSimPrimaryGeneratorAction* generatorAction;
   WCSimDetectorConstruction*   detectorConstructor;
-  
+
 public:
   WCSimEventAction(WCSimRunAction*, WCSimDetectorConstruction*,
 		    WCSimPrimaryGeneratorAction*);
