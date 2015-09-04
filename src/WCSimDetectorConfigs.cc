@@ -325,22 +325,43 @@ void WCSimDetectorConstruction::SetTestmPMTGeometry()
 
   WCDetectorName = "TestmPMT";
   WCIDCollectionName = WCDetectorName +"-glassFaceWCPMT";
-  WCSimPMTObject * PMT = CreatePMTObject("PMT3inchR12199_02", WCIDCollectionName);
+
+  mPMT_ID_PMT = "PMT3inchR12199_02";//"PMT20inch" (combine with nPMT=1);//"PMT3inchR12199_02"; 
+  mPMT_OD_PMT = "PMT8inch";         // Only used for the unique string name of mPMT for now!
+                                    
+
+  WCSimPMTObject * PMT = CreatePMTObject(mPMT_ID_PMT, WCIDCollectionName);
 
   WCPMTName = PMT->GetPMTName();
   WCPMTExposeHeight = PMT->GetExposeHeight(); 
   WCPMTRadius = PMT->GetRadius(); 
-  WCIDDiameter          = 33.6815*m; //16.900*2*cos(2*pi*rad/75)*m; //inner detector diameter
-  WCIDHeight            = 36.200*m; //"" "" height
+  WCIDDiameter          = 33.6815*m; //inner detector diameter
+  WCIDHeight            = 36.200*m;
   WCBarrelPMTOffset     = 0.0715*m; //offset from vertical
-  WCBarrelNumPMTHorizontal  = 150; 
-  WCBarrelNRings        = 10; //all for easier visualization debugging
+  WCBarrelNumPMTHorizontal  = 100; 
+  WCBarrelNRings        = 3; //all for easier visualization debugging
   WCPMTperCellHorizontal= 2;
   WCPMTperCellVertical  = 2;
-  WCCapPMTSpacing       = 4.2*m; // distance between centers of top and bottom pmts
+  WCCapPMTSpacing       = 8.4*m; // distance between centers of top and bottom pmts
   WCCapEdgeLimit        = 16.9*m;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
+
+  //mPMT params:
+  cylinder_height = 50.*mm;
+  cylinder_radius = 245.*mm;
+  orientation = PERPENDICULAR;
+  mPMT_outer_material = "G4_PLEXIGLASS";
+  mPMT_inner_material = "Blacksheet";
+  mPMT_outer_material_d = 0.03*2*(cylinder_radius + WCPMTExposeHeight + 2.5)*CLHEP::mm;
+  mPMT_inner_material_d = 2.*CLHEP::mm; //a 2 mm thick blacksheet or whatever
+  // Radius of cone at z=reflectorHeight
+  id_reflector_height = 7.5*CLHEP::mm;         //7.5mm from KM3Net JINST
+  id_reflector_angle = CLHEP::pi/4*CLHEP::rad; // Based on KM3Net JINST: 45 deg wrt normal, so 7.5mm xtra
+  // parameters related to filling the ID mPMT
+  nID_PMTs = 33;//1;//33;
+  config_file = "mPMTconfig_33_13_1.txt"; //mPMTconfig_30_13_3.txt
+
 }
 
 
@@ -349,7 +370,10 @@ void WCSimDetectorConstruction::Cylinder_60x74_3inchmPMT_14perCent()
 { 
   WCDetectorName = "Cylinder_60x74_3inchmPMT_14perCent()";
   WCIDCollectionName = WCDetectorName +"-glassFaceWCPMT";
-  WCSimPMTObject * PMT = CreatePMTObject("PMT3inchR12199_02", WCIDCollectionName);
+  mPMT_ID_PMT = "PMT3inchR12199_02";
+  mPMT_OD_PMT = "PMT8inch";
+
+  WCSimPMTObject * PMT = CreatePMTObject(mPMT_ID_PMT, WCIDCollectionName);
   WCPMTName           = PMT->GetPMTName();
   WCPMTExposeHeight   = PMT->GetExposeHeight();
   WCPMTRadius         = PMT->GetRadius();
@@ -366,4 +390,20 @@ void WCSimDetectorConstruction::Cylinder_60x74_3inchmPMT_14perCent()
   WCCapEdgeLimit        = WCIDDiameter/2.0 - cylinder_radius;//WCPMTRadius;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
+
+  //mPMT params:
+  cylinder_height = 50.*CLHEP::mm;
+  cylinder_radius = 245.*CLHEP::mm;
+  orientation = PERPENDICULAR;
+  mPMT_outer_material = "G4_PLEXIGLASS";
+  mPMT_inner_material = "Blacksheet";
+  mPMT_outer_material_d = 0.03*2*(cylinder_radius + WCPMTExposeHeight + 2.5)*CLHEP::mm; //using NEMO article safety margin of 0.03 for t/D
+  mPMT_inner_material_d = 2.*CLHEP::mm; //a 2 mm thick blacksheet or whatever
+  // Radius of cone at z=reflectorHeight
+  id_reflector_height = 7.5*CLHEP::mm;         //7.5mm from KM3Net JINST
+  id_reflector_angle = CLHEP::pi/4*CLHEP::rad; // Based on KM3Net JINST: 45 deg wrt normal, so 7.5mm xtra
+  // parameters related to filling the ID mPMT
+  nID_PMTs = 33;
+  config_file = "mPMTconfig_33_13_1.txt";
+
 }

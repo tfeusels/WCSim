@@ -95,6 +95,9 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCylinder()
   // Volumes
   //-----------------------------------------------------
 
+  checkOverlaps = true; //TODO: get from .mac file: true for making geo, false for running
+  checkOverlapsPMT = false; // for mPMT the cylindrical part and bottom sphere (OD) will stick
+                            // into the wall, so will overlap by construction!!
   // The water barrel is placed in an tubs of air
   
   G4Tubs* solidWC = new G4Tubs("WC",
@@ -139,7 +142,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCylinder()
 		      "WCBarrel",
 		      logicWC,
 		      false,
-	 	      0); 
+			  0,
+			  checkOverlaps); 
 
 // if(!debugMode)
 //    logicWCBarrel->SetVisAttributes(G4VisAttributes::Invisible); 
@@ -175,7 +179,10 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCylinder()
 		      "WCBarrelAnnulus",
 		      logicWCBarrel,
 		      false,
-		      0,true);
+		      0,
+					  //true);
+ 		  checkOverlaps);  //macro Param for faster execution once we have our G4Geom
+
 if(!debugMode)
    logicWCBarrelAnnulus->SetVisAttributes(G4VisAttributes::Invisible); //amb79
   //-----------------------------------------------------
@@ -287,7 +294,8 @@ else {
                       "WCBarrelCellBlackSheet",
                       logicWCBarrelCell,
                       false,
-                      0,true);
+                      0,//true);
+					  checkOverlaps);
 
   G4LogicalBorderSurface * WaterBSBarrelCellSurface 
     = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
@@ -305,7 +313,7 @@ else {
 
 
  //-----------------------------------------------------------
- // add extra tower if nessecary
+ // add extra tower if necessary
  // ---------------------------------------------------------
  
   // we have to declare the logical Volumes 
@@ -351,7 +359,8 @@ else {
 			"WCExtraTower",
 			logicWCBarrel,
 			false,
-			0,true);
+						0,//true);
+						checkOverlaps);
  
 
     logicWCExtraTower->SetVisAttributes(G4VisAttributes::Invisible);
@@ -414,7 +423,7 @@ else {
 			"WCExtraTowerBlackSheet",
 			logicWCExtraTowerCell,
 			false,
-			0,true);
+						0,checkOverlaps);//true);
 
     G4LogicalBorderSurface * WaterBSTowerCellSurface 
       = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
@@ -463,7 +472,7 @@ else {
 								logicWCTopVeto,
 								"WCTopVeto",
 								logicWCBarrel,
-								false,0,true);
+								false,0,checkOverlaps);//true);
 
 	  //Add the top veto Tyvek
 	  //-----------------------------------------------------
@@ -492,7 +501,7 @@ else {
 								logicWCTVTyvek,
 		               			"WCTVTyvekBot",
 		          				logicWCTopVeto,
-				 				false,0,true);
+				 				false,0,checkOverlaps);//true);
 
 	  G4LogicalBorderSurface * WaterTyTVSurfaceBot =
 			new G4LogicalBorderSurface(	"WaterTyTVSurfaceBot",
@@ -508,7 +517,7 @@ else {
 								logicWCTVTyvek,
 		               			"WCTVTyvekTop",
 		          				logicWCTopVeto,
-				 				false,0,true);
+				 				false,0,checkOverlaps);//true);
 
 	  G4LogicalBorderSurface * WaterTyTVSurfaceTop =
 			new G4LogicalBorderSurface(	"WaterTyTVSurfaceTop",
@@ -539,7 +548,7 @@ else {
 								logicWCTVTyvekSide,
 		               			"WCTVTyvekSide",
 		          				logicWCTopVeto,
-				 				false,0,true);
+				 				false,0,checkOverlaps);//true);
 
 	  G4LogicalBorderSurface * WaterTyTVSurfaceSide =
 			new G4LogicalBorderSurface(	"WaterTyTVSurfaceSide",
@@ -568,6 +577,11 @@ else {
   // TF: Args are set to properties of the class which is somehow global (see the ConstructDetector.hh)
   //     They are set in the WCSimDetectorConfigs and are property of the PMT.
   G4LogicalVolume* logicWCPMT = ConstructMultiPMT(WCPMTName, WCIDCollectionName);
+  if(!logicWCPMT){
+    G4cerr << "Overlapping PMTs in multiPMT" << G4endl;
+    return NULL; 
+  }
+
   //G4LogicalVolume* logicWCPMT = ConstructPMT(WCPMTName, WCIDCollectionName);
   G4String pmtname = "WCMultiPMT";
   
@@ -602,7 +616,11 @@ else {
 		    							pmtname,//"WCPMT",				// its name 
 		    							logicWCTopVeto,			// its mother volume
 		    							false,					// no boolean os
-		    							icopy);					// every PMT need a unique id.
+		    							icopy,				// every PMT need a unique id.
+										checkOverlapsPMT);	
+
+			//no overlap check as mPMT will be overlapping by construction (OD + cylinder sticks into
+			// wall)
 
 		    icopy++;
 		  }
@@ -658,7 +676,8 @@ else {
 			  logicWCBarrelCell,         // its mother volume
 			  false,                     // no boolean operations
 			  (int)(i*WCPMTperCellVertical+j),
-			  true);                       
+					  //true);                       
+					  checkOverlapsPMT);
       
    // logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more 
      // daugter volumes to the PMTs (e.g. a acryl cover) you have to check, if
@@ -697,7 +716,8 @@ else {
 			    logicWCExtraTowerCell,         // its mother volume
 			    false,                     // no boolean operations
 			    (int)(i*WCPMTperCellVertical+j),
-			    true);                       
+						//true);                       
+						checkOverlapsPMT);
 	
 		// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more 
 		// daughter volumes to the PMTs (e.g. a acryl cover) you have to check, if
@@ -717,7 +737,8 @@ else {
                   logicTopCapAssembly,
                   "TopCapAssembly",
                   logicWCBarrel,
-                  false, 0,true);
+					false, 0,//true);
+					checkOverlaps);
 
   G4VPhysicalVolume* physiBottomCapAssembly =
     new G4PVPlacement(0,
@@ -725,7 +746,8 @@ else {
                   logicBottomCapAssembly,
                   "BottomCapAssembly",
                   logicWCBarrel,
-                  false, 0,true);
+					  false, 0,//true);
+					  checkOverlaps);
 
   return logicWC;
 }
@@ -781,7 +803,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
                   logicWCBarrelBorderRing,
                   "WCBarrelBorderRing",
                   logicCapAssembly,
-                  false, 0,true);
+					  false, 0,checkOverlaps);//true);
 
 
                   
@@ -834,7 +856,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
                       "WCBarrelCellBlackSheet",
                       logicWCBarrelBorderCell,
                       false,
-                      0,true);
+                      0,checkOverlaps);//true);
 
   G4LogicalBorderSurface * WaterBSBarrelBorderCellSurface
     = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
@@ -881,7 +903,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
                   logicWCExtraBorderCell,
                   "WCExtraTowerBorderCell",
                   logicCapAssembly,
-                  false, 0,true);
+						false, 0,checkOverlaps);//true);
 
     logicWCExtraBorderCell->SetVisAttributes(G4VisAttributes::Invisible);
 
@@ -892,7 +914,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 			"WCExtraTowerBlackSheet",
 			logicWCExtraBorderCell,
 			false,
-			0,true);
+						0,checkOverlaps);//true);
 
     G4LogicalBorderSurface * WaterBSExtraBorderCellSurface 
       = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
@@ -974,7 +996,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 		      "WCCap",             // its name
 		      logicCapAssembly,                  // its mother volume
 		      false,                       // no boolean operations
-		      0,true);                          // Copy #
+					  0,checkOverlaps);//true);                          // Copy #
 
 
  
@@ -1053,7 +1075,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
                       "WCCapBlackSheet",
                       logicWCCap,
                       false,
-                      0,true);
+                      0,checkOverlaps);//true);
    G4LogicalBorderSurface * WaterBSBottomCapSurface 
       = new G4LogicalBorderSurface("WaterBSCapPolySurface",
                                    physiWCCap,physiWCCapBlackSheet,
@@ -1117,7 +1139,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 			    pmtname, // its name 
 			    logicWCCap,         // its mother volume
 			    false,                 // no boolean os
-			    icopy);               // every PMT need a unique id.
+						icopy,           // every PMT need a unique id.
+						checkOverlapsPMT);    
 	
  // logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more 
     // daugter volumes to the PMTs (e.g. a acryl cover) you have to check, if
@@ -1159,13 +1182,13 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 			  logicWCBarrelBorderCell,         // its mother volume
 			  false,                     // no boolean operations
 			  (int)(i*WCPMTperCellVertical+j)
-			  ,true);                      // no particular field
+					  ,checkOverlapsPMT);//true);                      // no particular field
 
 
    // logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more 
      // daugter volumes to the PMTs (e.g. a acryl cover) you have to check, if
 		// this is still the case.
-    }
+	}
   }
   //-------------------------------------------------------------
   // Add PMTs in extra Tower if necessary
@@ -1199,7 +1222,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 			    logicWCExtraBorderCell,         // its mother volume
 			    false,                     // no boolean operations
 			    (int)(i*WCPMTperCellVertical+j)
-			    ,true);                        // no particular field
+						,checkOverlapsPMT);//true);                        // no particular field
 
 		// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more 
 		// daugter volumes to the PMTs (e.g. a acryl cover) you have to check, if

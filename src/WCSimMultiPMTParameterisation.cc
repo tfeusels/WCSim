@@ -41,15 +41,17 @@ void WCSimMultiPMTParameterisation::ComputeTransformation
 (const G4int copyNo, G4VPhysicalVolume* physVol) const
 {
    // Note: copyNo will start with zero!
-  G4RotationMatrix* rotm = new G4RotationMatrix(); // Rotation matrix for each chamber
+  G4RotationMatrix* rotm = new G4RotationMatrix(); // Rotation matrix for each PMT
   G4double angle = ((vNiCLocal[vCircleLocal[copyNo]]-2)*CLHEP::pi/vNiCLocal[vCircleLocal[copyNo]]); // Internal angle of each polygon
   G4ThreeVector origin(0,0,0); 
   origin.setRThetaPhi(fApothema,CLHEP::halfpi-vAlphaLocal[vCircleLocal[copyNo]],copyNo*(CLHEP::pi-angle));
   // TF: Positioning vector, for an offset single hemisphere (for now)
   origin.setZ(origin.getZ()+fHeight);
 
+  // For output to txt file for AutoCad/Solidworks
+  //G4cout << "PMT " << copyNo << " (theta,phi): (" << (CLHEP::halfpi-vAlphaLocal[vCircleLocal[copyNo]])*(180./CLHEP::pi)  << "," <<  origin.getPhi()*(180./CLHEP::pi) << ")" << G4endl;
   // rotation of mother volume wrt daughter, hence minus sign.
-  rotm->rotateZ(-origin.getPhi());
+rotm->rotateZ(-origin.getPhi());
   rotm->rotateY(-acos((origin.getZ()-fHeight)/fApothema)); //over Y', origin.getTheta() is incorrect!
 
 
