@@ -58,7 +58,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMultiPMT(G4String PMTName, 
   }
   
   G4cout << "Create mPMT" << G4endl;
-  
+
   //All components of the PMT are now contained in a single logical volume logicWCPMT.
   //Origin is on the blacksheet, faces positive z-direction.
 
@@ -463,9 +463,9 @@ G4int WCSimDetectorConstruction::FillCircles(void){
     vAlpha.push_back(atof(item.c_str())*CLHEP::deg);
   }
     
-  for(int i = 0; i < vNiC.size(); i++) {
-    std::cout << "test " << vNiC[i] << " " << vAlpha[i]/CLHEP::deg << " " << vEta[i]/CLHEP::deg << std::endl;
-  }
+  //for(int i = 0; i < vNiC.size(); i++) {
+  // std::cout << "test " << vNiC[i] << " " << vAlpha[i]/CLHEP::deg << " " << vEta[i]/CLHEP::deg << std::endl;
+  //}
 
 
  // Total number of pmt in the circles
