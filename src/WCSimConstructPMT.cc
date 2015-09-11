@@ -44,15 +44,6 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
     WCPMTVisAtt->SetForceAuxEdgeVisible(true); // force auxiliary edges to be shown 
   }
   
-  else { 
-    // Gray wireframe visual style
-    // used in OGLSX visualizer
-    //G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.2,0.2,0.2));
-    //WCPMTVisAtt->SetForceWireframe(true);
-    G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,0.0));
-    WCPMTVisAtt->SetForceSolid(true);
-  }
-  
   G4double expose = 0.;
   G4double radius = 0.;
   G4double glassThickness = 0.;
@@ -178,7 +169,8 @@ if (Vis_Choice == "RayTracer"){
   WCPMTVisAtt->SetForceSolid(true); // force the object to be visualized with a surface
   WCPMTVisAtt->SetForceAuxEdgeVisible(true); // force auxiliary edges to be shown 
 
-  logicInteriorWCPMT->SetVisAttributes(WCPMTVisAtt);}
+  logicInteriorWCPMT->SetVisAttributes(WCPMTVisAtt);
+ }
 
 else {
 // Making the inner portion of the detector invisible for OGLSX visualization
@@ -219,31 +211,37 @@ else {
 // For either visualization type, logicGlassFaceWCPMT will either be visible or invisible depending on which
 // line is commented at the end of the respective if statements
 
-  if (Vis_Choice == "OGLSX")
-   { // Gray wireframe visual style
+  if (Vis_Choice == "OGLSX") { 
+ // Gray wireframe visual style
     // used in OGLSX visualizer
-  G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.2,0.2,0.2));
-  WCPMTVisAtt->SetForceWireframe(true);
-  //logicGlassFaceWCPMT->SetVisAttributes(G4VisAttributes::Invisible);
-  logicGlassFaceWCPMT->SetVisAttributes(WCPMTVisAtt);}
+    G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.2,0.2,0.2));
+    WCPMTVisAtt->SetForceWireframe(true);
+     
+    //logicGlassFaceWCPMT->SetVisAttributes(G4VisAttributes::Invisible);
+    logicGlassFaceWCPMT->SetVisAttributes(WCPMTVisAtt);
+  }
 
   if (Vis_Choice == "RayTracer"){
     // Blue wireframe visual style
     // Used in the RayTracer visualizer
-  G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
-  WCPMTVisAtt->SetForceSolid(true); // force the object to be visualized with a surface
-  WCPMTVisAtt->SetForceAuxEdgeVisible(true); // force auxiliary edges to be shown 
-  //logicGlassFaceWCPMT->SetVisAttributes(G4VisAttributes::Invisible);
-
+    G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
+    WCPMTVisAtt->SetForceSolid(true); // force the object to be visualized with a surface
+    WCPMTVisAtt->SetForceAuxEdgeVisible(true); // force auxiliary edges to be shown 
+    //logicGlassFaceWCPMT->SetVisAttributes(G4VisAttributes::Invisible);
+    
   logicGlassFaceWCPMT->SetVisAttributes(WCPMTVisAtt);}
 
   else
    { // Gray wireframe visual style
      // used in OGLSX visualizer
-     G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.2,0.2,0.2));
-     WCPMTVisAtt->SetForceWireframe(true);
-     //logicGlassFaceWCPMT->SetVisAttributes(G4VisAttributes::Invisible);
-     logicGlassFaceWCPMT->SetVisAttributes(WCPMTVisAtt);
+     //G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.2,0.2,0.2));
+     //WCPMTVisAtt->SetForceWireframe(true);
+     G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,0.0));
+     WCPMTVisAtt->SetForceSolid(true);
+ 
+    //logicGlassFaceWCPMT->SetVisAttributes(G4VisAttributes::Invisible);
+    logicGlassFaceWCPMT->SetVisAttributes(WCPMTVisAtt);
+
    }
 
   //Add Logical Border Surface
