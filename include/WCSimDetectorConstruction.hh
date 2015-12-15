@@ -69,6 +69,7 @@ public:
   void InitSinglePMT();
   void SetTestmPMTGeometry();
   void Cylinder_60x74_3inchmPMT_14perCent();
+  void Cylinder_60x74_3inch_14perCent();
   void Cylinder_60x74_3inchmPMT_40perCent();
   void SuperK_20inchPMT_20perCent();
   void SuperK_20inchBandL_20perCent();
