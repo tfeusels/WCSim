@@ -110,7 +110,7 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   G4String WCIDCollectionName = fdet->GetIDCollectionName();
   // M Fechner : too verbose
   //  if (aStep->GetTrack()->GetTrackStatus() == fAlive)G4cout << "status is fAlive\n";
-  if ((aStep->GetTrack()->GetTrackStatus() == fAlive )
+  if ((aStep->GetTrack()->GetTrackStatus() == fAlive )                                         //// TF: If absorbed in postVol, then it's killed, so will be Hit, if it's alive, then it's not a hit.
       &&(particleDefinition == G4OpticalPhoton::OpticalPhotonDefinition()))
     return false;
 
