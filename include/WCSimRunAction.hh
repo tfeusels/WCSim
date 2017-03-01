@@ -122,7 +122,7 @@ private:
   TTree* tracksTree;
   TTree* triggerTree;
   TTree* eventInfoTree;
-
+  TTree* optionsTree_flat;
 
   // GeoTree
   Char_t geo_type_string[20];   

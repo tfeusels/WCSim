@@ -101,6 +101,7 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* /*aRun*/)
   }
 
   //TF: New Flat tree format:
+  // ToDo: make this into functions to structure the code better.
   rootname.replace(rootname.find(".root"),5,"_flat.root");
   TFile* flatfile = new TFile(rootname.c_str(),"RECREATE","WCSim FLAT ROOT file");
   flatfile->SetCompressionLevel(2); //default is 1 (minimal compression)
@@ -239,15 +240,57 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* /*aRun*/)
   cherenkovDigiHitsTree->Branch("PMT_diry",(evNtup->digitube_diry),"PMT_diry[NDigiHits]/Float_t");
   cherenkovDigiHitsTree->Branch("PMT_dirz",(evNtup->digitube_dirz),"PMT_dirz[NDigiHits]/Float_t");
 
+
   /* TF TODO: Adapt to Flat Tree output!!
-  // Options tree
-  optionsTree = new TTree("wcsimRootOptionsT","WCSim Options Tree");
-  optionsTree->Branch("wcsimrootoptions", "WCSimRootOptions", &wcsimrootoptions, bufsize, 0);
-  
   //set detector & random options
   wcsimdetector->SaveOptionsToOutput(wcsimrootoptions);
   wcsimrandomparameters->SaveOptionsToOutput(wcsimrootoptions);
   */
+  optionsTree_flat = new TTree("RootOptions","WCSim Options Tree");
+  //The options are in the wcopt class
+  /* WORK IN PROGRESS
+  optionsTree_flat->Branch("DetectorName",(Char_t *)(wcsimrootoptions->GetDetectorName().c_str()),"DetectorName[100]/Char_t");
+  optionsTree_flat->Branch("SavePi0",&wcsimrootoptions->SavePi0,"SavePi0/Int_t");
+  */
+  /*
+  bool   SavePi0;
+  int    PMTQEMethod;
+  int    PMTCollEff;
+  double PMTDarkRate; // kHz
+  double ConvRate; // kHz
+  double DarkHigh; // ns
+  double DarkLow; // ns
+  double DarkWindow; // ns
+  int    DarkMode;
+  string DigitizerClassName;
+  int    DigitizerDeadTime; // ns
+  int    DigitizerIntegrationWindow; // ns
+  string TriggerClassName;
+  bool   MultiDigitsPerTrigger;
+  int    NDigitsThreshold; // digitized hits
+  int    NDigitsWindow; // ns
+  bool   NDigitsAdjustForNoise;
+  int    NDigitsPreTriggerWindow; // ns
+  int    NDigitsPostTriggerWindow; // ns
+  int    SaveFailuresMode;
+  double SaveFailuresTime; // ns
+  int    SaveFailuresPreTriggerWindow; // ns
+  int    SaveFailuresPostTriggerWindow; // ns
+  double Rayff;
+  double Bsrff;
+  double Abwff;
+  double Rgcff;
+  double Mieff;
+  double Tvspacing;
+  bool   Topveto;
+  string PhysicsListName;
+  string SecondaryHadModel;
+  string VectorFileName;
+  string GeneratorType;
+  int                    RandomSeed;
+  WCSimRandomGenerator_t RandomGenerator;
+  */
+
 
 }
 
@@ -281,6 +324,10 @@ void WCSimRunAction::EndOfRunAction(const G4Run*)
   triggerTree->Write();
   masterTree->AddFriend("EventInfo");
   eventInfoTree->Write();
+  //masterTree->AddFriend(""
+  optionsTree_flat->Fill();
+  optionsTree_flat->Write();
+
   masterTree->Write();
   file->Close();
 
