@@ -288,7 +288,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMultiPMT(G4String PMTName, 
   // origin is center of upward cylinder
   G4LogicalVolume *logic_mPMT_container;
   //necessary to make concentric shells because can Mother can only contain parametrized daughters.
-  G4double innerR_curv_container = vessel_radius_curv - expose - dist_pmt_vessel - mPMT_outer_material_d;
+  G4double innerR_curv_container = vessel_radius_curv - mPMT_outer_material_d - 54.*mm;  //-expose - dist_pmt_vessel
   G4double outerR_curv_container = vessel_radius_curv - mPMT_outer_material_d;
 
   //vessel_curv - vessel_height is conserved for all concentric caps !
@@ -400,8 +400,10 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMultiPMT(G4String PMTName, 
    * in the parametrization somehow (eg. looping over an array or so)
    */
 
+  // individual PMTs z=0 is offset by position_z_offset (see ConstructPMT) for n>1
   G4double pmtDistance = innerR_curv_container; // Inner radius od the DOM 
-  G4cout << "Distance from the Z axis = " <<  pmtDistance << " mm" << G4endl;
+  pmtDistance -= (vessel_radius_curv - mPMT_outer_material_d - 54.*mm); 
+  G4cout << "Distance from the Z axis and corrected for z0 of individual PMTs = " <<  pmtDistance << " mm" << G4endl;
 
   G4LogicalVolume* logicWCPMT = ConstructPMT(PMTName, CollectionName);
 
@@ -480,18 +482,18 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMultiPMT(G4String PMTName, 
   //Fill top sphere (or let the parametrisation figure out the whole filling? Yes!)
   // raise/lower PMT to be inside the container
   double pmt_z_offset = 0.;
-  if(vessel_cyl_height >= 0.01*mm)
+  if(vessel_cyl_height >= 0.01*mm){
     pmt_z_offset = cap_position_offset+vessel_cyl_height/2; // and same for inner structure
-
+  }
   G4VPVParameterisation* pmtParam_id =
     new WCSimMultiPMTParameterisation(
 				      nID_PMTs,	        // NoPMTs
-				      pmtDistance,	// Z spacing of centers
+				      pmtDistance,	// Radius of PMT translated positions on sphere
 				      vNiC,		// # PMTs in each circle
 				      vAlpha,		// Their tilt angle
 				      vCircle,          // Circle number
 				      vAzimOffset,      // The offset in azimuth angle of first PMT in that circle
-				      pmt_z_offset);//);// Position offsets of circles, should become array!
+				      pmt_z_offset);    // Position offsets of circles, should become array!
 
   
   // dummy value : kZAxis -- modified by parameterised volume
@@ -517,6 +519,19 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMultiPMT(G4String PMTName, 
     //return NULL; 
   }
   
+  /* TESTING single case
+   G4RotationMatrix* rotm = new G4RotationMatrix();
+   rotm->rotateY(-36.*CLHEP::degree);
+   new G4PVPlacement(rotm,             // its rotation
+ G4ThreeVector(0,0,pmt_z_offset),                        // its position
+ logicWCPMT,                  // its logical volume
+ "test1",             // its name 
+ logic_mPMT_container,            // its mother volume
+ false,             // no boolean os
+ 0, 
+ checkOverlaps);
+   */
+
   // Place Container:
   /*
   new G4PVPlacement(	0,				             // its rotation
