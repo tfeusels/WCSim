@@ -34,7 +34,7 @@ WCSimRunAction::WCSimRunAction(WCSimDetectorConstruction* test, WCSimRandomParam
   wcsimdetector = test;
   messenger = new WCSimRunActionMessenger(this);
 
-  useDefaultROOTout = false;
+  useDefaultROOTout = true; //false;
   wcsimrootoptions = new WCSimRootOptions();
 
 }

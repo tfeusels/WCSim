@@ -379,7 +379,7 @@ void WCSimDetectorConstruction::SetTestSinglemPMTGeometry()
   
   //mPMT params
   vessel_cyl_height = 38.*CLHEP::mm;
-  vessel_radius_curv = 300.*CLHEP::mm;
+  vessel_radius_curv = 342.*CLHEP::mm;
   vessel_radius = 254.*CLHEP::mm;
   dist_pmt_vessel = 2*CLHEP::mm;
   orientation = PERPENDICULAR;
@@ -388,7 +388,7 @@ void WCSimDetectorConstruction::SetTestSinglemPMTGeometry()
   mPMT_material_pmtAssembly = "SilGel";
   mPMT_outer_material_d = 10.*CLHEP::mm;
   // Radius of cone at z=reflectorHeight
-  id_reflector_height = 10*CLHEP::mm;                //10. > previous 7mm (deprecated number from JINST)
+  id_reflector_height = 6.53*CLHEP::mm;                //10. > previous 7mm (deprecated number from JINST)
   id_reflector_z_offset = 4.8*CLHEP::mm;            //from KM3Net CAD drawings
   id_reflector_angle = 48*CLHEP::pi/180.*CLHEP::rad; // Based on KM3Net reflector specs
   mPMT_pmt_openingAngle = 8.7*CLHEP::deg;     
@@ -396,8 +396,8 @@ void WCSimDetectorConstruction::SetTestSinglemPMTGeometry()
   // BarrelPMTOffset/WCCapEdgeLimit needs PMT/mPMT height
   G4double vessel_tot_height = vessel_radius + vessel_cyl_height;
   // parameters related to filling the ID mPMT
-  nID_PMTs = 33;
-  config_file = "mPMTconfig_33_13_1.txt";
+  nID_PMTs = 19; //33;
+  config_file = "mPMTconfig_19_nuPrism_3ring.txt";//"mPMTconfig_33_13_1.txt";
 
   WCIDDiameter             = 10.0*m;
   WCIDHeight               = 30.0*m;
