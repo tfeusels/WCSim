@@ -923,12 +923,13 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
   //G4cout <<"WCFV digi:"<<std::setw(4)<<wcsimrootevent->GetNcherenkovdigihits()<<"  ";
   //G4cout <<"WCFV digi sumQ:"<<std::setw(4)<<wcsimrootevent->GetSumQ()<<"  ";
   //  }
-  TFile* hfile = tree->GetCurrentFile();
-  hfile->cd();
 
   TTree* tree = GetRunAction()->GetTree();
   tree->Fill();
-  // MF : overwrite the trees -- otherwise we have as many copies of the tree
+
+  TFile* hfile = tree->GetCurrentFile();
+  hfile->cd();
+    // MF : overwrite the trees -- otherwise we have as many copies of the tree
   // as we have events. All the intermediate copies are incomplete, only the
   // last one is useful --> huge waste of disk space.
   tree->Write("",TObject::kOverwrite);
