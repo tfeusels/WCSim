@@ -305,10 +305,6 @@ void WCSimRunAction::EndOfRunAction(const G4Run*)
 
   //Write the options tree
   G4cout << "EndOfRunAction" << G4endl;
-  if(useDefaultROOTout){
-    optionsTree->Fill();
-    optionsTree->Write();
-  }
   
   // Close the Root file at the end of the run
 
@@ -338,6 +334,8 @@ void WCSimRunAction::EndOfRunAction(const G4Run*)
 
     // Close the Root file at the end of the run
     TFile* hfile = WCSimTree->GetCurrentFile();
+    optionsTree->Fill();
+    optionsTree->Write();
     hfile->Close();
   
     // Clean up stuff on the heap; I think deletion of hfile and trees
