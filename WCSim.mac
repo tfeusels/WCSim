@@ -152,6 +152,9 @@
 #/gps/ang/minphi 0 deg
 #/gps/ang/maxphi 360 deg
 
+## For visualization recommended only 
+#/Tracking/fractionOpticalPhotonsToDraw 100.0
+
 ## change the name of the output root file, default = wcsim.root
 
 /WCSimIO/RootFile wcsim.root
