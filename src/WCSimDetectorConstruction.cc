@@ -53,6 +53,8 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuning
   WCSimDetectorConstruction::PMTLogicalVolumes.clear();
   totalNumPMTs = 0;
   WCPMTExposeHeight= 0.;
+  WCPMTName = "";
+  WCPMTName2 = "";
 
   //---------------------------------------------------
   // Need to define defaults for all mPMT parameters 

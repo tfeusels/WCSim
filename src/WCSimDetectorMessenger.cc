@@ -26,9 +26,8 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
                           "HyperK\n"
 			  "EggShapedHyperK\n"
 			  "EggShapedHyperK_withHPD\n"
-			  "Cylinder_60x74_3inchmPMT_14perCent\n"
+			  "Cylinder_60x74_hybrid_40perCent\n"
 			  "Cylinder_60x74_3inchmPMT_40perCent\n"
-			  "Cylinder_60x74_3inch_14perCent\n"
 			  "Cylinder_60x74_3inch_40perCent\n"
 			  "TestSinglemPMT\n"
                          );
@@ -44,9 +43,8 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
 			   "HyperK "
 			   "EggShapedHyperK "
 			   "EggShapedHyperK_withHPD "
-			   "Cylinder_60x74_3inchmPMT_14perCent "
+			   "Cylinder_60x74_hybrid_40perCent "
 			   "Cylinder_60x74_3inchmPMT_40perCent "
-			   "Cylinder_60x74_3inch_14perCent "
 			   "Cylinder_60x74_3inch_40perCent "
 			   "TestSinglemPMT "
                            );
@@ -337,12 +335,10 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 		  WCSimDetector->SetEggShapedHyperKGeometry_withHPD();
 		} else if(newValue == "TestSinglemPMT") {
 		  WCSimDetector->SetTestSinglemPMTGeometry();	
-		} else if(newValue == "Cylinder_60x74_3inchmPMT_14perCent" ) {
-		  WCSimDetector->Cylinder_60x74_3inchmPMT_14perCent(); // MUST be Called after the mPMT settings, otherwise unknown
+		} else if(newValue == "Cylinder_60x74_hybrid_40perCent" ) {
+		  WCSimDetector->Cylinder_60x74_hybrid_40perCent(); // MUST be Called after the mPMT settings, otherwise unknown
 		} else if(newValue == "Cylinder_60x74_3inchmPMT_40perCent" ) {
 		  WCSimDetector->Cylinder_60x74_3inchmPMT_40perCent(); // MUST be Called after the mPMT settings, otherwise unknown
-		} else if(newValue == "Cylinder_60x74_3inch_14perCent" ) {
-		  WCSimDetector->Cylinder_60x74_3inch_14perCent(); // MUST be Called after the mPMT settings, otherwise unknown
 		} else if(newValue == "Cylinder_60x74_3inch_40perCent" ) {
 		  WCSimDetector->Cylinder_60x74_3inch_40perCent(); // MUST be Called after the mPMT settings, otherwise unknown
 		} else

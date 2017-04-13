@@ -72,9 +72,8 @@ public:
   void SetSuperKGeometry();
   void InitSinglePMT();
   void SetTestSinglemPMTGeometry();
-  void Cylinder_60x74_3inchmPMT_14perCent();
+  void Cylinder_60x74_hybrid_40perCent();
   void Cylinder_60x74_3inchmPMT_40perCent();
-  void Cylinder_60x74_3inch_14perCent();
   void Cylinder_60x74_3inch_40perCent();
   void SuperK_20inchPMT_20perCent();
   void SuperK_20inchBandL_20perCent();
@@ -91,7 +90,7 @@ public:
   G4double GetWaterTubeLength()   {return WCLength;}
   G4double GetWaterTubePosition() {return WCPosition;}
   G4double GetPMTSize()           {return WCPMTRadius;}
-  G4String GetPMTName()			  {return WCPMTName;}
+  G4String GetPMTName()		  {return WCPMTName;}
   G4int    GetMyConfiguration()   {return myConfiguration;}
   G4double GetGeo_Dm(G4int);
   G4int    GetTotalNumPmts() {return totalNumPMTs;}
@@ -360,11 +359,13 @@ private:
   // Hit collection name parameters
   G4String WCDetectorName;
   G4String WCIDCollectionName;
+  G4String WCIDCollectionName2;   // for hybrid ID
   G4String WCODCollectionName;
 
 
   // WC PMT parameters
   G4String WCPMTName;
+  G4String WCPMTName2;            // for hybrid ID
   typedef std::pair<G4String, G4String> PMTKey_t;
   typedef std::map<PMTKey_t, G4LogicalVolume*> PMTMap_t;
 

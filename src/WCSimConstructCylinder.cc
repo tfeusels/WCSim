@@ -74,10 +74,9 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCylinder()
   //TF: has to change for mPMT vessel:
   if(vessel_cyl_height + vessel_radius < 1.*mm)
 	innerAnnulusRadius = WCIDRadius - WCPMTExposeHeight-1.*mm;
-  else
+  else //both for full mPMT as for hybrid
 	innerAnnulusRadius = WCIDRadius - vessel_cyl_height - vessel_radius -1.*mm;
   
-  //TF: need to add a Polyhedra on the other side of the outerAnnulusRadius for the OD
   outerAnnulusRadius = WCIDRadius + WCBlackSheetThickness + 1.*mm;//+ Stealstructure etc.
 
   // the radii are measured to the center of the surfaces
@@ -668,15 +667,26 @@ else {
   // TF: Args are set to properties of the class which is somehow global (see the ConstructDetector.hh)
   //     They are set in the WCSimDetectorConfigs and are property of the PMT.
   G4LogicalVolume* logicWCPMT = ConstructMultiPMT(WCPMTName, WCIDCollectionName);
+  G4String pmtname = "WCPMT";
   if(!logicWCPMT){
     G4cerr << "Overlapping PMTs in multiPMT" << G4endl;
     return NULL; 
   }
-
-  //G4LogicalVolume* logicWCPMT = ConstructPMT(WCPMTName, WCIDCollectionName);
-  G4String pmtname = "WCMultiPMT";
-
-
+  
+ G4LogicalVolume* logicWCPMT2;
+ G4String pmtname2;
+ if(WCPMTName2 != ""){
+   logicWCPMT2 = ConstructMultiPMT(WCPMTName2, WCIDCollectionName2);
+   
+   if(!logicWCPMT2){
+	 G4cerr << "Overlapping PMTs in multiPMT" << G4endl;
+	 return NULL; 
+   }
+   pmtname2 = "WCPMT2";
+ }else{
+   logicWCPMT2 = logicWCPMT;
+   pmtname2 = pmtname;
+ }
   /*These lines of code will give color and volume to the PMTs if it hasn't been set in WCSimConstructPMT.cc.
 I recommend setting them in WCSimConstructPMT.cc. 
 If used here, uncomment the SetVisAttributes(WClogic) line, and comment out the SetVisAttributes(G4VisAttributes::Invisible) line.*/
@@ -710,7 +720,7 @@ If used here, uncomment the SetVisAttributes(WClogic) line, and comment out the 
 		  G4ThreeVector cellpos =
 		  		G4ThreeVector(	xoffset, yoffset, -0.5*m);
 
-		  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCTVEdgeLimit) {
+		  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + std::max(WCPMTRadius,vessel_radius)) < WCTVEdgeLimit) {
 
 		    G4VPhysicalVolume* physiCapPMT =
 		    		new G4PVPlacement(	0,						// no rotation
@@ -738,7 +748,7 @@ If used here, uncomment the SetVisAttributes(WClogic) line, and comment out the 
   //jl145------------------------------------------------
 
 
-    ///////////////   Barrel PMT placement
+  ///////////////   Barrel PMT placement
   G4RotationMatrix* WCPMTRotation = new G4RotationMatrix;
 
   //for multiPMT, for single PMT need to test defaults
@@ -750,13 +760,6 @@ If used here, uncomment the SetVisAttributes(WClogic) line, and comment out the 
 	WCPMTRotation->rotateX(90.*deg); //if mPMT: horizontal to wall
   
   
-
-
-  
-  
-
-
-
   G4double barrelCellWidth = 2.*WCIDRadius*tan(dPhi/2.);
   G4double horizontalSpacing   = barrelCellWidth/WCPMTperCellHorizontal;
   G4double verticalSpacing     = barrelCellHeight/WCPMTperCellVertical;
@@ -768,16 +771,29 @@ If used here, uncomment the SetVisAttributes(WClogic) line, and comment out the 
       G4ThreeVector PMTPosition =  G4ThreeVector(WCIDRadius,
 						 -barrelCellWidth/2.+(i+0.5)*horizontalSpacing,
 						 -barrelCellHeight/2.+(j+0.5)*verticalSpacing);
-
-      G4VPhysicalVolume* physiWCBarrelPMT =
-	new G4PVPlacement(WCPMTRotation,              // its rotation
-			  PMTPosition, 
-			  logicWCPMT,                // its logical volume
-			  pmtname,//"WCPMT",             // its name
-			  logicWCBarrelCell,         // its mother volume
-			  false,                     // no boolean operations
-			  (int)(i*WCPMTperCellVertical+j),
-			  checkOverlapsPMT);                       
+	  
+	  int copyNo = (int)(i*WCPMTperCellVertical+j);
+	  //Alternate between PMT types for hybrid. Will place the same one if not hybrid.
+	  if(copyNo%2 == 0)
+		G4VPhysicalVolume* physiWCBarrelPMT =
+		  new G4PVPlacement(WCPMTRotation,              // its rotation
+							PMTPosition, 
+							logicWCPMT,                // its logical volume
+							pmtname,                   // its name
+							logicWCBarrelCell,         // its mother volume
+							false,                     // no boolean operations
+							copyNo,
+							checkOverlapsPMT);                       
+	  else
+		G4VPhysicalVolume* physiWCBarrelPMT =
+		  new G4PVPlacement(WCPMTRotation,              // its rotation
+							PMTPosition, 
+							logicWCPMT2,                // its logical volume
+							pmtname2,                   // its name
+							logicWCBarrelCell,         // its mother volume
+							false,                     // no boolean operations
+							copyNo,
+							checkOverlapsPMT);    
       
    // logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more 
      // daugter volumes to the PMTs (e.g. a acryl cover) you have to check, if
@@ -802,22 +818,36 @@ If used here, uncomment the SetVisAttributes(WClogic) line, and comment out the 
 
     for(G4double i = 0; i < (WCBarrelNumPMTHorizontal-WCBarrelRingNPhi*WCPMTperCellHorizontal); i++){
       for(G4double j = 0; j < WCPMTperCellVertical; j++){
-	G4ThreeVector PMTPosition =  G4ThreeVector(WCIDRadius/cos(dPhi/2.)*cos((2.*pi-totalAngle)/2.),
-				towerWidth/2.-(i+0.5)*horizontalSpacing,
-			       -barrelCellHeight/2.+(j+0.5)*verticalSpacing);
-	PMTPosition.rotateZ(-(2*pi-totalAngle)/2.); // align with the symmetry 
-	                                            //axes of the cell 
+		G4ThreeVector PMTPosition =  G4ThreeVector(WCIDRadius/cos(dPhi/2.)*cos((2.*pi-totalAngle)/2.),
+												   towerWidth/2.-(i+0.5)*horizontalSpacing,
+												   -barrelCellHeight/2.+(j+0.5)*verticalSpacing);
+		PMTPosition.rotateZ(-(2*pi-totalAngle)/2.); // align with the symmetry 
+		//axes of the cell 
+		
 
-	G4VPhysicalVolume* physiWCBarrelPMT =
-	  new G4PVPlacement(WCPMTRotation,             // its rotation
-			    PMTPosition, 
-			    logicWCPMT,                // its logical volume
-			    "WCPMT",             // its name
-			    logicWCExtraTowerCell,         // its mother volume
-			    false,                     // no boolean operations
-			    (int)(i*WCPMTperCellVertical+j),
-			    checkOverlapsPMT);                       
-	
+		int copyNo = (int)(i*WCPMTperCellVertical+j);
+		//Alternate between PMT types for hybrid. Will place the same one if not hybrid.
+		if(copyNo%2 == 0)
+		  G4VPhysicalVolume* physiWCBarrelPMT =
+			new G4PVPlacement(WCPMTRotation,             // its rotation
+							  PMTPosition, 
+							  logicWCPMT,                // its logical volume
+							  pmtname,             // its name
+							  logicWCExtraTowerCell,         // its mother volume
+							  false,                     // no boolean operations
+							  copyNo,
+							  checkOverlapsPMT);                       
+		else
+		  G4VPhysicalVolume* physiWCBarrelPMT =
+			new G4PVPlacement(WCPMTRotation,             // its rotation
+							  PMTPosition, 
+							  logicWCPMT2,                // its logical volume
+							  pmtname2,             // its name
+							  logicWCExtraTowerCell,         // its mother volume
+							  false,                     // no boolean operations
+							  copyNo,
+							  checkOverlapsPMT);                       
+
 		// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more 
 		// daughter volumes to the PMTs (e.g. a acryl cover) you have to check, if
 		// this is still the case.
@@ -1289,8 +1319,21 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
   // Add top and bottom PMTs
   // -----------------------------------------------------
   
- G4LogicalVolume* logicWCPMT = ConstructMultiPMT(WCPMTName, WCIDCollectionName);
- //G4LogicalVolume* logicWCPMT = ConstructPMT(WCPMTName, WCIDCollectionName);
+  G4LogicalVolume* logicWCPMT = ConstructMultiPMT(WCPMTName, WCIDCollectionName);
+  if(!logicWCPMT){
+    G4cerr << "Overlapping PMTs in multiPMT" << G4endl;
+    return NULL; 
+  }
+  
+ G4LogicalVolume* logicWCPMT2;
+ if(WCPMTName2 != ""){
+   logicWCPMT2 = ConstructMultiPMT(WCPMTName2, WCIDCollectionName2);
+   
+   if(!logicWCPMT2){
+	 G4cerr << "Overlapping PMTs in multiPMT" << G4endl;
+	 return NULL; 
+   }
+ }
  G4String pmtname = "WCMultiPMT";
  
  // If using RayTracer and want to view the detector without caps, comment out the top and bottom PMT's
@@ -1327,7 +1370,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
       //	- 2.0 * WCBarrelEffRadius * sqrt(xoffset*xoffset+yoffset*yoffset)
       //	+ WCBarrelEffRadius*WCBarrelEffRadius;
       //      if ( (comp > WCPMTRadius*WCPMTRadius) && ((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCCapEdgeLimit) ) {
-	  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCCapEdgeLimit) 
+	  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + std::max(WCPMTRadius,vessel_radius)) < WCCapEdgeLimit) 
+		
 
 		// for debugging boundary cases: 
 		// &&  ((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) > (WCCapEdgeLimit-100)) ) 
