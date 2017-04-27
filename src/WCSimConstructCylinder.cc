@@ -106,7 +106,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCylinder()
   // Optionally place parts of the detector. Very useful for visualization and debugging 
   // geometry overlaps in detail.
   placeBarrelPMTs = true;//false;//true;
-  placeCapPMTs = false;
+  placeCapPMTs = true;
   placeBorderPMTs = true;//false;//true; 
 
 
