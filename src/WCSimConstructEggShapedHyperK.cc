@@ -121,8 +121,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructEggShapedHyperK()
 
   //Construct the PMTs
 
-  G4LogicalVolume* logicWCPMT = ConstructPMT(WCPMTName, WCIDCollectionName);
-  G4LogicalVolume* logicWCPMT_OD = ConstructPMT(outerPMT_Name, WCODCollectionName);
+  G4LogicalVolume* logicWCPMT = ConstructPMT(WCPMTName[0], WCIDCollectionName[0],0);
+  G4LogicalVolume* logicWCPMT_OD = ConstructPMT(outerPMT_Name, WCODCollectionName,0);
 
   // Radial PMTs
 

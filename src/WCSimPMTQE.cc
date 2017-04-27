@@ -26,9 +26,8 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4String CollectionName, G4float Pho
   // and the sensitive detector.
 
   // flag
-  // flag == 0 return the maximum QE for all wave length
-  // flag == 1 return the actual QE for the wave length
-
+  // flag == 0 return the maximum QE for all wavelength
+  // flag == 1 return the actual QE for the wavelength
 
   // low_wl and high_wl 
   // remove any optical photons outside the range
@@ -38,7 +37,7 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4String CollectionName, G4float Pho
 
   // return 0 for wavelenght outside the range
   if (flag==1){
-    if (PhotonWavelength <= low_wl || PhotonWavelength >= high_wl || PhotonWavelength <=280 || PhotonWavelength >=660){
+    if (PhotonWavelength <= low_wl || PhotonWavelength >= high_wl || PhotonWavelength <=280 || PhotonWavelength >=700){
       return 0;
     }
   }else if (flag==0){
@@ -47,6 +46,8 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4String CollectionName, G4float Pho
     }
   }
   
+  G4double wavelengthQE = 0;
+
   WCSimPMTObject *PMT;
   PMT = GetPMTPointer(CollectionName);
   G4float *wavelength;
@@ -55,26 +56,24 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4String CollectionName, G4float Pho
   QE = PMT->GetQE();
   G4float maxQE;
   maxQE = PMT->GetmaxQE();
-  G4double wavelengthQE = 0;
-
+  
+  
   if (flag == 1){
-    //MF: off by one bug fix.
-    for (int i=0; i<=18; i++){
+	//MF: off by one bug fix.
+	for (int i=0; i<=20; i++){ //extended QE arrays to 700nm
 	  if ( PhotonWavelength <= *(wavelength+(i+1))){
 		wavelengthQE = *(QE+i) + 
 		  (*(QE+(i+1))-*(QE+i))/(*(wavelength+(i+1))-*(wavelength+i))*
 		  (PhotonWavelength - *(wavelength+i));
-      	break;
-      }
-    }
+		break;
+	  }
+	}
   }else if (flag == 0){
 	wavelengthQE = maxQE; 
   }
-  wavelengthQE = wavelengthQE *ratio;
+
+  wavelengthQE = wavelengthQE *ratio; // MAGIC
   
   return wavelengthQE;
 }
-
-
-
 

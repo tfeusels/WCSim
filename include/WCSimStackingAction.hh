@@ -19,7 +19,8 @@ class WCSimStackingAction : public G4UserStackingAction {
     virtual void PrepareNewEvent();
 
   private:
-	  WCSimDetectorConstruction*   DetConstruct;
+  WCSimDetectorConstruction*   DetConstruct;
+  G4int nWarnings;
 
 };
 

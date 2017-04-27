@@ -34,7 +34,7 @@ public:
   void SetDarkLow(int idarklow){DarkLow = idarklow;}
   void SetDarkWindow(int idarkwindow){DarkWindow = idarkwindow;}
   void SaveOptionsToOutput(WCSimRootOptions * wcopt);
-  
+    
 private:
   void ReInitialize() { ranges.clear(); result.clear();}
   void SetPMTDarkDefaults();
@@ -47,7 +47,7 @@ private:
   double DarkWindow; //ns
   int DarkMode;
   bool fCalledAddDarkNoise;
-
+  double NoiseOccupancy;          // total number of noise hits
   WCSimDetectorConstruction* myDetector;
 
   std::vector<std::pair<float, float> > ranges;

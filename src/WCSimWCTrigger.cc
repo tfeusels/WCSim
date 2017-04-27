@@ -133,16 +133,27 @@ void WCSimWCTriggerBase::AdjustNDigitsThresholdForNoise()
 {
   int npmts = this->myDetector->GetTotalNumPmts();
   double trigger_window_seconds = ndigitsWindow * 1E-9;
-  double dark_rate_Hz = PMTDarkRate * 1000;
-  double average_occupancy = dark_rate_Hz * trigger_window_seconds * npmts;
+  /* INVALID if PMT rates over the whole ID detector are NOT the same:*/
+  //double dark_rate_Hz = PMTDarkRate * 1000;                                      
+  //double average_occupancy = dark_rate_Hz * trigger_window_seconds * npmts;
+  // NEW: loop over individual rates instead to get average:
+  double average_occupancy = 0.;
+  for(G4int ij = 1; ij<= npmts; ij++){
+    average_occupancy += this->myDetector->GetDarkRate(ij) * ndigitsWindow; //all in ns
+  }
   
+
   G4cout << "Average number of PMTs in detector active in a " << ndigitsWindow
-	 << "ns window with a dark noise rate of " << PMTDarkRate
-	 << "kHz is " << average_occupancy
+    //<< "ns window with a dark noise rate of " << PMTDarkRate
+	 << "ns window with individual dark noise rates "
+    //<< "kHz is " << average_occupancy
+	 << " is " << average_occupancy
 	 << " (" << npmts << " total PMTs)"
 	 << G4endl
 	 << "Updating the NDigits threshold, from " << ndigitsThreshold
 	 << " to " << ndigitsThreshold + round(average_occupancy) << G4endl;
+  
+
   ndigitsThreshold += round(average_occupancy);
 }
 

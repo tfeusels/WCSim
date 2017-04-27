@@ -39,8 +39,8 @@ WCSimWCPMT::~WCSimWCPMT(){
  
 }
 
-G4double WCSimWCPMT::rn1pe(){
-  G4String WCIDCollectionName = myDetector->GetIDCollectionName();
+G4double WCSimWCPMT::rn1pe(int j){
+  G4String WCIDCollectionName = myDetector->GetIDCollectionName(j);
   WCSimPMTObject * PMT;
   PMT = myDetector->GetPMTPointer(WCIDCollectionName);
   G4int i;
@@ -62,8 +62,13 @@ G4double WCSimWCPMT::rn1pe(){
 
 void WCSimWCPMT::Digitize()
 {
+  // TF: At this moment digitize both ID PMTs from hybrid together/the same way
+  // Later can have different digitization/treatment.
+
   DigitsCollection = new WCSimWCDigitsCollection ("WCDigitizedCollectionPMT",collectionName[0]);
-  G4String WCIDCollectionName = myDetector->GetIDCollectionName();
+  
+  //First ID PMT 0
+  G4String WCIDCollectionName = myDetector->GetIDCollectionName(0);  
   G4DigiManager* DigiMan = G4DigiManager::GetDMpointer();
  
   // Get the Associated Hit collection IDs
@@ -74,9 +79,26 @@ void WCSimWCPMT::Digitize()
     (WCSimWCHitsCollection*)(DigiMan->GetHitsCollection(WCHCID));
 
   if (WCHC) {
-
-    MakePeCorrection(WCHC);
+    //G4cout << "DEBUG: doing peCorrection for " << WCIDCollectionName << ", " << WCHCID << G4endl;
+    MakePeCorrection(WCHC,0);         
     
+  }
+
+  //Then ID PMT 1
+  if(myDetector->GetNoIDtypes() == 2){
+    WCIDCollectionName = myDetector->GetIDCollectionName(1);
+    
+    // Get the Associated Hit collection ID
+    WCHCID = DigiMan->GetHitsCollectionID(WCIDCollectionName);
+
+    // The Hits collection
+    WCHC = (WCSimWCHitsCollection*)(DigiMan->GetHitsCollection(WCHCID));
+    
+    if (WCHC) {
+      //G4cout << "DEBUG: doing peCorrection for " << WCIDCollectionName << ", " << WCHCID << G4endl;
+      MakePeCorrection(WCHC,1);       
+      //both Digitized hits are added to DigitsCollection together
+    }
   }
 
   StoreDigiCollection(DigitsCollection);
@@ -84,7 +106,7 @@ void WCSimWCPMT::Digitize()
 }
 
 
-void WCSimWCPMT::MakePeCorrection(WCSimWCHitsCollection* WCHC)
+void WCSimWCPMT::MakePeCorrection(WCSimWCHitsCollection* WCHC, G4int IDno)
 { 
 
   // Get the info for pmt positions
@@ -93,9 +115,8 @@ void WCSimWCPMT::MakePeCorrection(WCSimWCHitsCollection* WCHC)
   // pmts->at(i) has tubeid i+1
 
   //Get the PMT info for hit time smearing
-  G4String WCIDCollectionName = myDetector->GetIDCollectionName();
+  G4String WCIDCollectionName = myDetector->GetIDCollectionName(IDno);
   WCSimPMTObject * PMT = myDetector->GetPMTPointer(WCIDCollectionName);
-
 
   for (G4int i=0; i < WCHC->entries(); i++)
     {
@@ -133,7 +154,7 @@ void WCSimWCPMT::MakePeCorrection(WCSimWCHitsCollection* WCHC)
 
 	  for (G4int ip =0; ip < (*WCHC)[i]->GetTotalPe(); ip++){
 	    time_true = (*WCHC)[i]->GetTime(ip);
-	    peSmeared = rn1pe();
+	    peSmeared = rn1pe(IDno);
 	    int parent_id = (*WCHC)[i]->GetParentID(ip);
 
 	    //apply time smearing

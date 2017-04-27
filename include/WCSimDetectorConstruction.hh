@@ -89,19 +89,21 @@ public:
   G4String GetDetectorName()      {return WCDetectorName;}
   G4double GetWaterTubeLength()   {return WCLength;}
   G4double GetWaterTubePosition() {return WCPosition;}
-  G4double GetPMTSize()           {return WCPMTRadius;}
-  G4String GetPMTName()		  {return WCPMTName;}
+  G4double GetPMTSize(int i)      {return WCPMTRadius[i];}
+  G4String GetPMTName(int i)	  {return WCPMTName[i];}
   G4int    GetMyConfiguration()   {return myConfiguration;}
   G4double GetGeo_Dm(G4int);
   G4int    GetTotalNumPmts() {return totalNumPMTs;}
-  
+  G4int    GetTotalNumPmts(G4int i) {return totalNumPMTsID[i];}
+  G4int    GetTotalNum_mPmts() {return totalNum_mPMTs;}           // TF: should also be an array?? WORK IN PROGRESS
+
   G4int    GetPMT_QE_Method(){return PMT_QE_Method;}
   G4double GetwaterTank_Length() {return waterTank_Length;} 
   G4int    UsePMT_Coll_Eff(){return PMT_Coll_Eff;}
 
-  G4double GetPMTSize1() {return WCPMTSize;}
+  G4double GetPMTSize1(int i) {return WCPMTSize[i];}
 
-  G4float GetPMTQE(G4String,G4float, G4int, G4float, G4float, G4float);
+  G4float GetPMTQE(G4String ,G4float, G4int, G4float, G4float, G4float);
   G4float GetPMTCollectionEfficiency(G4float theta_angle, G4String CollectionName) { return GetPMTPointer(CollectionName)->GetCollectionEfficiency(theta_angle); };
 
   WCSimPMTObject *CreatePMTObject(G4String, G4String);
@@ -124,6 +126,7 @@ public:
   // Related to the WC tube ID
   static G4int GetTubeID(std::string tubeTag){return tubeLocationMap[tubeTag];}
   static G4Transform3D GetTubeTransform(int tubeNo){return tubeIDMap[tubeNo];}
+  static G4float GetDarkRate(int tubeNo){return DarkRateMap[tubeNo].first;}
 
   // Related to Pi0 analysis
   G4bool SavePi0Info()              {return pi0Info_isSaved;}
@@ -152,17 +155,17 @@ public:
   // *** End Egg-Shaped HyperK Geometry ***
 
   // Getters and Setters for MultiPMT details from macro.
-  void SetmPMT_VesselRadius(G4double radius){
-    vessel_radius = radius;
+  void SetmPMT_VesselRadius(G4double radius,int i){
+    vessel_radius[i] = radius;
 
     // WCBarrelPMTOffset is affected, so need to be updated!!
-    G4double vessel_tot_height = vessel_radius + vessel_cyl_height;
+    G4double vessel_tot_height = vessel_radius[i] + vessel_cyl_height[i];
     // If no acrylic cover/pressure vessel
-    if(vessel_tot_height < WCPMTRadius)
-      vessel_tot_height = WCPMTRadius;
+    if(vessel_tot_height < WCPMTRadius[i])
+      vessel_tot_height = WCPMTRadius[i];
     WCBarrelPMTOffset = vessel_tot_height;                          // BarrelPMTOffset needs PMT/mPMT height
     if(!fix_nModules){
-      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/(10.0*vessel_radius));
+      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/(10.0*vessel_radius[i]));
       if(WCBarrelNumPMTHorizontal < 1)
 	G4cerr << "Bug in dimensions as less than 1 BarrelPMT specified" << G4endl;
       WCBarrelNRings           = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))
@@ -172,71 +175,69 @@ public:
     }
   }                          
 
-  void SetmPMT_VesselRadiusCurv(G4double radius){
-    vessel_radius_curv = radius;
+  void SetmPMT_VesselRadiusCurv(G4double radius, int i){
+    vessel_radius_curv[i] = radius;
   }                          
 
-  void SetmPMT_VesselCylHeight(G4double height){
-    vessel_cyl_height = height;
+  void SetmPMT_VesselCylHeight(G4double height, int i){
+    vessel_cyl_height[i] = height;
 
-    G4double vessel_tot_height = vessel_radius + vessel_cyl_height;
+    G4double vessel_tot_height = vessel_radius[i] + vessel_cyl_height[i];
     // If no acrylic cover/pressure vessel
-    if(vessel_tot_height < WCPMTRadius)
-      vessel_tot_height = WCPMTRadius;
+    if(vessel_tot_height < WCPMTRadius[i])
+      vessel_tot_height = WCPMTRadius[i];
     WCBarrelPMTOffset = vessel_tot_height;
     if(!fix_nModules)
       WCCapEdgeLimit = WCIDDiameter/2.0 - vessel_tot_height;
 
   }
-  void SetmPMT_DistPMTVessel(G4double dist){dist_pmt_vessel = dist;}
-  void SetmPMT_Orientation(mPMT_orientation orient){orientation = orient;}
-  void SetmPMT_ReflectorHeight(G4double ref_height){id_reflector_height = ref_height;}
-  void SetmPMT_ReflectorZoffset(G4double ref_zoffset){id_reflector_z_offset = ref_zoffset;}
-  void SetmPMT_ReflectorAngle(G4double ref_angle){id_reflector_angle = ref_angle;}
-  void SetmPMT_MaterialOuter(G4String outer_material){
-    mPMT_outer_material = outer_material;
+  void SetmPMT_DistPMTVessel(G4double dist, int i){dist_pmt_vessel[i] = dist;}
+  void SetmPMT_Orientation(mPMT_orientation orient, int i){orientation[i] = orient;}
+  void SetmPMT_ReflectorHeight(G4double ref_height, int i){id_reflector_height[i] = ref_height;}
+  void SetmPMT_ReflectorZoffset(G4double ref_zoffset, int i){id_reflector_z_offset[i] = ref_zoffset;}
+  void SetmPMT_ReflectorAngle(G4double ref_angle, int i){id_reflector_angle[i] = ref_angle;}
+  void SetmPMT_MaterialOuter(G4String outer_material, int i){
+    mPMT_outer_material[i] = outer_material;
     if(outer_material == "Acrylic")
-      mPMT_outer_material = "G4_PLEXIGLASS";
+      mPMT_outer_material[i] = "G4_PLEXIGLASS";
     }
-  void SetmPMT_MaterialInner(G4String inner_material){mPMT_inner_material = inner_material;}
-  void SetmPMT_PMTtype_inner(G4String type){
-    mPMT_ID_PMT = type;
+  void SetmPMT_MaterialInner(G4String inner_material, int i){mPMT_inner_material[i] = inner_material;}
+  void SetmPMT_PMTtype_inner(G4String type, int i){
+    mPMT_ID_PMT[i] = type;
     
     //ToDo: replace by common function
-    WCSimPMTObject * PMT = CreatePMTObject(mPMT_ID_PMT, WCIDCollectionName);
-    WCPMTName = PMT->GetPMTName();
-    WCPMTExposeHeight = PMT->GetExposeHeight(); 
-    WCPMTRadius = PMT->GetRadius(); 
+    WCSimPMTObject * PMT = CreatePMTObject(mPMT_ID_PMT[i], WCIDCollectionName[i]);
+    WCPMTName[i] = PMT->GetPMTName();
+    WCPMTExposeHeight[i] = PMT->GetExposeHeight(); 
+    WCPMTRadius[i] = PMT->GetRadius(); 
    }
-  void SetmPMT_PMTtype_outer(G4String type){mPMT_OD_PMT = type;}
-  void SetmPMT_MaterialOuterThickness(G4double thickness){
-    mPMT_outer_material_d = thickness;
+  void SetmPMT_PMTtype_outer(G4String type, int i){mPMT_OD_PMT[i] = type;}
+  void SetmPMT_MaterialOuterThickness(G4double thickness, int i){
+    mPMT_outer_material_d[i] = thickness;
   }
-  void SetmPMT_nID(G4int nPMTs){nID_PMTs = nPMTs;}
-  void SetmPMT_Config(G4String inputfile){config_file = inputfile;}
+  void SetmPMT_nID(G4int nPMTs, int i){nID_PMTs[i] = nPMTs;}
+  void SetmPMT_Config(G4String inputfile, int i){config_file[i] = inputfile;}
 
-  int GetmPMT_nID(void){return nID_PMTs;};
-  G4String GetPMTtype_ID(void){return mPMT_ID_PMT;};
-  G4String GetPMTtype_OD(void){return mPMT_OD_PMT;};   //might want to replace the name mPMT by general var name
-  void SetmPMT_MaterialPMTassembly(G4String material){mPMT_material_pmtAssembly = material;}
+  int GetmPMT_nID(int i){return nID_PMTs[i];};
+  G4String GetPMTtype_ID(int i){return mPMT_ID_PMT[i];};
+  G4String GetPMTtype_OD(int i){return mPMT_OD_PMT[i];};   //might want to replace the name mPMT by general var name
+  void SetmPMT_MaterialPMTassembly(G4String material, int i){mPMT_material_pmtAssembly[i] = material;}
   void SetmPMT_FixModules(G4bool fix){fix_nModules = fix;}
-  void SetmPMT_OpeningAngle(G4double angle){mPMT_pmt_openingAngle = angle;}
+  void SetmPMT_OpeningAngle(G4double angle, int i){mPMT_pmt_openingAngle[i] = angle;}
 
   //Filling mPMT
-  G4int         FillCircles(void);
+  G4int         FillCircles(G4int);
   // DEPRECATED:
   G4int	        CountPMT(G4int NoPmt);
   G4double	ComputeEta (G4int NoPmt);
   G4double	ComputeAlpha (G4double alphaOfPrevC, G4double Eta);
   G4int	        ComputeNiC (G4double alphaOfCircle, G4double Eta);
 
-
-
-
   std::vector<WCSimPmtInfo*>* Get_Pmts() {return &fpmts;}
 
-  G4String GetIDCollectionName(){return WCIDCollectionName;}
-
+  G4String GetIDCollectionName(int i){return WCIDCollectionName[i];}
+  G4String * GetIDCollectionNames(){return WCIDCollectionName;}
+  G4int GetNoIDtypes(){return IDnoTypes;}
  
 private:
 
@@ -278,8 +279,8 @@ private:
   // The Construction routines
   G4LogicalVolume*   ConstructCylinder();
 
-  G4LogicalVolume* ConstructPMT(G4String,G4String);
-  G4LogicalVolume* ConstructMultiPMT(G4String,G4String); 
+  G4LogicalVolume* ConstructPMT(G4String,G4String,G4int);
+  G4LogicalVolume* ConstructMultiPMT(G4String,G4String,G4int); 
 
 
   G4LogicalVolume* ConstructCaps(G4int zflip);
@@ -358,14 +359,14 @@ private:
   
   // Hit collection name parameters
   G4String WCDetectorName;
-  G4String WCIDCollectionName;
-  G4String WCIDCollectionName2;   // for hybrid ID
+  G4String WCIDCollectionName[2];
   G4String WCODCollectionName;
 
+  // Hybrid has two types of ID PMT (modules), others only one
+  G4int IDnoTypes;
 
   // WC PMT parameters
-  G4String WCPMTName;
-  G4String WCPMTName2;            // for hybrid ID
+  G4String WCPMTName[2];
   typedef std::pair<G4String, G4String> PMTKey_t;
   typedef std::map<PMTKey_t, G4LogicalVolume*> PMTMap_t;
 
@@ -373,8 +374,8 @@ private:
 
   // WC geometry parameters
 
-  G4double WCPMTRadius;
-  G4double WCPMTExposeHeight;
+  G4double WCPMTRadius[2];
+  G4double WCPMTExposeHeight[2];
   G4double WCBarrelPMTOffset;
 
   G4double WCIDDiameter;
@@ -386,10 +387,10 @@ private:
 
   G4double WCBarrelRingRadius;
 
-  G4double WCBarrelRingNPhi;
-  G4double WCBarrelNRings;
-  G4double WCPMTperCellHorizontal;
-  G4double WCPMTperCellVertical;
+  G4int WCBarrelRingNPhi;
+  G4int WCBarrelNRings;
+  G4int WCPMTperCellHorizontal;
+  G4int WCPMTperCellVertical;
 
   G4double WCPMTPercentCoverage;
 
@@ -500,13 +501,18 @@ private:
   std::ofstream geoFile;   // File for text output
 
   G4int totalNumPMTs;      // The number of PMTs for this configuration     
+  G4int totalNumPMTsID[2];    // The number of PMTs separate for each ID type
+  G4int totalNum_mPMTs;   // The number of mPMTs (+1 for single PMT, +1 for mPMT)
   G4double WCCylInfo[3];    // Info for the geometry tree: radius & length or mail box, length, width and depth
-  G4double WCPMTSize;       // Info for the geometry tree: pmt size
+  G4double WCPMTSize[2];       // Info for the geometry tree: pmt size
   G4ThreeVector WCOffset;   // Info for the geometry tree: WC center offset
 
   // Tube map information
 
   static std::map<int, G4Transform3D> tubeIDMap;
+  static std::map<int, std::pair< int, int > > mPMTIDMap; //maps tubeID to corresponding mPMT and mPMT_pmt ID
+  static std::map<int, std::pair< float, float > > DarkRateMap; //maps tubeID to corresponding dark rate and conversion factor
+  static std::map<int, int> collectionIDMap; // maps tubeID to collectionID.
 //  static std::map<int, cyl_location> tubeCylLocation;
   //static hash_map<std::string, int, hash<std::string> >  tubeLocationMap_old;                //Deprecated
   static std::unordered_map<std::string, int, std::hash<std::string> >  tubeLocationMap; 
@@ -517,24 +523,24 @@ private:
   G4double innerradius;
 
   // Variables related to MultiPMTs
-  G4double vessel_cyl_height;
-  G4double vessel_radius_curv;                        // radius of the sphere to determine curvature of cap of pressure vessel
-  G4double vessel_radius;                             // radius of the pressure vessel (spherical cap)
-  G4double dist_pmt_vessel;                           // distance between glass of pmt and inner radius of pressure vessel (region where water/gel lives)
-  mPMT_orientation orientation;
-  G4String mPMT_outer_material;
-  G4String mPMT_inner_material;
-  G4double mPMT_outer_material_d;
-  G4double id_reflector_height;
-  G4double id_reflector_z_offset;
-  G4double id_reflector_angle;
-  G4int nID_PMTs;
-  G4String config_file;
-  G4String mPMT_ID_PMT; //or ToDo: ideally ENUM
-  G4String mPMT_OD_PMT;
+  G4double vessel_cyl_height[2];
+  G4double vessel_radius_curv[2];                        // radius of the sphere to determine curvature of cap of pressure vessel
+  G4double vessel_radius[2];                             // radius of the pressure vessel (spherical cap)
+  G4double dist_pmt_vessel[2];                           // distance between glass of pmt and inner radius of pressure vessel (region where water/gel lives)
+  mPMT_orientation orientation[2];
+  G4String mPMT_outer_material[2];
+  G4String mPMT_inner_material[2];
+  G4double mPMT_outer_material_d[2];
+  G4double id_reflector_height[2];
+  G4double id_reflector_z_offset[2];
+  G4double id_reflector_angle[2];
+  G4int nID_PMTs[2];
+  G4String config_file[2];
+  G4String mPMT_ID_PMT[2]; //or ToDo: ideally ENUM
+  G4String mPMT_OD_PMT[2];
   G4bool fix_nModules;
-  G4double mPMT_pmt_openingAngle;
-  G4String mPMT_material_pmtAssembly;
+  G4double mPMT_pmt_openingAngle[2];
+  G4String mPMT_material_pmtAssembly[2];
 
   //Filling mPMT
   std::vector<G4int>		vNiC;	        // Nb of Chambers in each circle

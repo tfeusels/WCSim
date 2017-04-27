@@ -23,7 +23,7 @@
 //WCSimDetectorConstruction::PMTMap_t WCSimDetectorConstruction::PMTLogicalVolumes;
 
 //ToDo: use enum instead of string for PMTtype, and PMTs should be objects of one simple class.
-G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4String CollectionName)
+G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4String CollectionName, G4int IDno)
 {
   PMTKey_t key(PMTName,CollectionName);
 
@@ -62,19 +62,19 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
   G4double PMTOffset =  sphereRadius - expose;
 
   //Optional reflectorCone:
-  G4double reflectorRadius = radius + id_reflector_height * tan(id_reflector_angle);
+  G4double reflectorRadius = radius + id_reflector_height[IDno] * tan(id_reflector_angle[IDno]);
   G4double reflectorThickness = 0.5*CLHEP::mm;
   if((reflectorRadius - radius) < 1.*CLHEP::mm)
     reflectorThickness = 0.*CLHEP::mm;
 
 
-  G4cout << "========================================================" << G4endl;
+  G4cout << "=================================================================================" << G4endl;
   G4cout << "Expose height for PMT " << CollectionName << " : " << expose << " mm" << G4endl;
   G4cout << "Radius at expose height : " << radius << " mm" << G4endl;
   G4cout << "Radius of curvature : " << sphereRadius << " mm" << G4endl;
   G4cout << "Reflector radius : " << reflectorRadius << " mm" << G4endl;
   G4cout << "Reflector thickness : " << reflectorThickness << " mm" << G4endl;
-  G4cout << "========================================================" << G4endl;
+  G4cout << "=================================================================================" << G4endl;
   
 
   G4VSolid *solidWCPMT;
@@ -84,12 +84,12 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
   G4double pmtModuleHeight = 54.*CLHEP::mm; //includes puck and single PMT support, not PMT base.
     
 
-  if(nID_PMTs == 1){
+  if(nID_PMTs[IDno] == 1){
 
     //All components of the PMT are now contained in a single logical volume logicWCPMT.
     //Origin is on the blacksheet, faces positive z-direction.
 
-    G4double PMTHolderZ[2] = {0, std::max(expose,id_reflector_height+id_reflector_z_offset)};
+    G4double PMTHolderZ[2] = {0, std::max(expose,id_reflector_height[IDno]+id_reflector_z_offset[IDno])};
     G4double PMTHolderR[2] = {std::max(radius,reflectorRadius) + reflectorThickness, 
 			      std::max(radius,reflectorRadius) + reflectorThickness};
     G4double PMTHolderr[2] = {0,0};
@@ -138,12 +138,12 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
     // gel layer ("container") and vessel.
     solidWCPMT =
       new G4Sphere("WCPMT",
-		   vessel_radius_curv - mPMT_outer_material_d - pmtModuleHeight, //rMin, 54mm is position of support structure
-		   vessel_radius_curv - mPMT_outer_material_d,          //rMax
+		   vessel_radius_curv[IDno] - mPMT_outer_material_d[IDno] - pmtModuleHeight, //rMin, 54mm is position of support structure
+		   vessel_radius_curv[IDno] - mPMT_outer_material_d[IDno],          //rMax
 		   0.0*deg,                                             //phiStart
 		   360.0*deg,                                           //Deltaphi
 		   0.0*deg,                                             //thetaStart
-		   mPMT_pmt_openingAngle);                                            //Deltatheta
+		   mPMT_pmt_openingAngle[IDno]);                                            //Deltatheta
     // Once we have a full PMT support in (not urgent),
     // replacing the current "inner" black sphere support by using
     // G4Tesselated from CADMesh'ing an STL,
@@ -152,8 +152,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
     
 
     //z=0 for spherical shell needs to be shifted
-    wcpmt_z_offset = vessel_radius_curv - mPMT_outer_material_d - pmtModuleHeight;
-    position_z_offset = vessel_radius_curv - mPMT_outer_material_d - expose - dist_pmt_vessel;
+    wcpmt_z_offset = vessel_radius_curv[IDno] - mPMT_outer_material_d[IDno] - pmtModuleHeight;
+    position_z_offset = vessel_radius_curv[IDno] - mPMT_outer_material_d[IDno] - expose - dist_pmt_vessel[IDno];
   }
   
   /*
@@ -166,7 +166,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
   //ToDo: define defaults for single PMTs and rename variable (optional gel for single 20" PMT)
   G4LogicalVolume* logicWCPMT =
     new G4LogicalVolume(    solidWCPMT,
-                            G4Material::GetMaterial(mPMT_material_pmtAssembly),        // Default: SilGel for n > 1, Water for n = 1 
+                            G4Material::GetMaterial(mPMT_material_pmtAssembly[IDno]),        // Default: SilGel for n > 1, Water for n = 1 
                             "WCPMT",
                             0,0,0);
 
@@ -331,7 +331,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
   /// Optional Reflector ///
   //////////////////////////
   
-  if(id_reflector_height > 0.1*CLHEP::mm 
+  if(id_reflector_height[IDno] > 0.1*CLHEP::mm 
      && (reflectorRadius-radius) > -5*CLHEP::mm){
 
     /* Some details:
@@ -345,7 +345,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
 		 radius + 1.1*CLHEP::mm + reflectorThickness,          //rmax
 		 reflectorRadius + 1.1*CLHEP::mm,                      //Rmin
 		 reflectorRadius + 1.1*CLHEP::mm + reflectorThickness, //Rmax
-		 id_reflector_height/2,                                //z/2
+		 id_reflector_height[IDno]/2,                                //z/2
 		 0, 2*CLHEP::pi);
 
 
@@ -364,7 +364,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
     
     // reflector PMT Placement:
     new G4PVPlacement(0,
-		      G4ThreeVector(0, 0, id_reflector_z_offset+id_reflector_height/2+position_z_offset),
+		      G4ThreeVector(0, 0, id_reflector_z_offset[IDno]+id_reflector_height[IDno]/2+position_z_offset),
 		      logicReflector,
 		      "reflectorWCPMT",
                         logicWCPMT,
@@ -375,7 +375,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
   
 
 
-  if(nID_PMTs > 1){
+  if(nID_PMTs[IDno] > 1){
     ////////////////////
     /// 1-PMT support //
     ////////////////////
@@ -383,11 +383,11 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
     G4Cons * solidWCPMTsupport =
       new G4Cons("WCPMTsupport",
 		 0.,                                                                      //rmin1
-		 tan(mPMT_pmt_openingAngle)*(vessel_radius_curv - mPMT_outer_material_d - pmtModuleHeight),      //rmax1
+		 tan(mPMT_pmt_openingAngle[IDno])*(vessel_radius_curv[IDno] - mPMT_outer_material_d[IDno] - pmtModuleHeight),      //rmax1
 		 0.,                                                                      //rmin2
-		 tan(mPMT_pmt_openingAngle)*(vessel_radius_curv - mPMT_outer_material_d
-			       -expose - dist_pmt_vessel),                                //rmax2
-		 (pmtModuleHeight - expose - dist_pmt_vessel)/2,                                   //h/2
+		 tan(mPMT_pmt_openingAngle[IDno])*(vessel_radius_curv[IDno] - mPMT_outer_material_d[IDno]
+			       -expose - dist_pmt_vessel[IDno]),                                //rmax2
+		 (pmtModuleHeight - expose - dist_pmt_vessel[IDno])/2,                                   //h/2
 		 0.0*deg,                                                                 //phiStart
 		 360.0*deg);                                                              //Deltaphi
 
@@ -400,7 +400,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
     new G4LogicalSkinSurface("FoamLogSkinSurface",logicWCPMTsupport,OpGelFoamSurface);
 
     new G4PVPlacement(0,
-		      G4ThreeVector(0, 0, wcpmt_z_offset+(pmtModuleHeight - expose - dist_pmt_vessel)/2),
+		      G4ThreeVector(0, 0, wcpmt_z_offset+(pmtModuleHeight - expose - dist_pmt_vessel[IDno])/2),
 		      logicWCPMTsupport,
 		      "WCPMTsupport",
 		      logicWCPMT,
@@ -415,17 +415,17 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructPMT(G4String PMTName, G4Str
   
 
     //Reflector support
-    if(id_reflector_height > 0.1*CLHEP::mm 
+    if(id_reflector_height[IDno] > 0.1*CLHEP::mm 
        && (reflectorRadius-radius) > -5*CLHEP::mm){
       
-      G4double ReflectorHolderZ[3] = {0, id_reflector_z_offset, id_reflector_z_offset+id_reflector_height};
-      G4double ReflectorHolderR[3] = {tan(mPMT_pmt_openingAngle)*(vessel_radius_curv - mPMT_outer_material_d
-						    -expose - dist_pmt_vessel),
-				      tan(mPMT_pmt_openingAngle)*(vessel_radius_curv - mPMT_outer_material_d
-						    -expose - dist_pmt_vessel+id_reflector_z_offset),
-				      tan(mPMT_pmt_openingAngle)*(vessel_radius_curv - mPMT_outer_material_d
-						    -expose - dist_pmt_vessel+id_reflector_z_offset
-						    +id_reflector_height)};
+      G4double ReflectorHolderZ[3] = {0, id_reflector_z_offset[IDno], id_reflector_z_offset[IDno]+id_reflector_height[IDno]};
+      G4double ReflectorHolderR[3] = {tan(mPMT_pmt_openingAngle[IDno])*(vessel_radius_curv[IDno] - mPMT_outer_material_d[IDno]
+						    -expose - dist_pmt_vessel[IDno]),
+				      tan(mPMT_pmt_openingAngle[IDno])*(vessel_radius_curv[IDno] - mPMT_outer_material_d[IDno]
+						    -expose - dist_pmt_vessel[IDno]+id_reflector_z_offset[IDno]),
+				      tan(mPMT_pmt_openingAngle[IDno])*(vessel_radius_curv[IDno] - mPMT_outer_material_d[IDno]
+						    -expose - dist_pmt_vessel[IDno]+id_reflector_z_offset[IDno]
+						    +id_reflector_height[IDno])};
       
       G4double ReflectorHolderr[3] = {radius + 1.1*CLHEP::mm + reflectorThickness,
 				      radius + 1.1*CLHEP::mm + reflectorThickness,

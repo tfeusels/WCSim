@@ -128,6 +128,12 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
   mPMTDir = new G4UIdirectory("/WCSim/mPMT/");
   mPMTDir->SetGuidance("Commands to change the properties of the multiPMT.");
 
+  mPMT_thisOne = new G4UIcmdWithAnInteger("/WCSim/mPMT/UpdateThismPMT",this);
+  mPMT_thisOne->SetGuidance("Set number of ID mPMT PMTs.");
+  mPMT_thisOne->SetParameterName("UpdateThismPMT", true);
+  mPMT_thisOne->SetDefaultValue(0.); 
+
+
 
   mPMT_CylHeight = new G4UIcmdWithADoubleAndUnit("/WCSim/mPMT/VesselCylHeight",this);
   mPMT_CylHeight->SetGuidance("Set height of cylinder of pressure vessel of multiPMT object.");
@@ -284,6 +290,7 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
 					   "Air " );
 
 
+  thismPMT = 0;
 }
 
 WCSimDetectorMessenger::~WCSimDetectorMessenger()
@@ -421,31 +428,36 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 			G4cout << "That PMT size is not defined!" << G4endl;	
 	}
 
+	if(command == mPMT_thisOne){
+	  SetThismPMT(mPMT_thisOne->GetNewIntValue(newValue));
+	}
+
 	if (command == mPMT_CylHeight){
 	  G4cout << "Set Vessel Cylinder Height of MultiPMT to " << newValue  << " " << G4endl; //doesn't work
 	  //std::cout << "Set Cylinder Height of MultiPMT to " << newValue  << " " << std::endl;
-	  WCSimDetector->SetmPMT_VesselCylHeight(mPMT_CylHeight->GetNewDoubleValue(newValue));
+	  WCSimDetector->SetmPMT_VesselCylHeight(mPMT_CylHeight->GetNewDoubleValue(newValue), thismPMT);
 	}
 
 
 	if (command == mPMT_CylRadiusCurv){
 	  G4cout << "Set Vessel Radius of Curvature of MultiPMT to " << newValue  << " " << G4endl; //doesn't work
 	  //std::cout << "Set Cylinder Radius of MultiPMT to " << newValue  << " " << std::endl;
-	  WCSimDetector->SetmPMT_VesselRadiusCurv(mPMT_CylRadiusCurv->GetNewDoubleValue(newValue));
+	  WCSimDetector->SetmPMT_VesselRadiusCurv(mPMT_CylRadiusCurv->GetNewDoubleValue(newValue), thismPMT);
 	}
 	
 	if (command == mPMT_CylRadius){
 	  G4cout << "Set Vessel Radius of MultiPMT to " << newValue  << " " << G4endl; //doesn't work
 	  //std::cout << "Set Cylinder Radius of MultiPMT to " << newValue  << " " << std::endl;
-	  WCSimDetector->SetmPMT_VesselRadius(mPMT_CylRadius->GetNewDoubleValue(newValue));
+	  WCSimDetector->SetmPMT_VesselRadius(mPMT_CylRadius->GetNewDoubleValue(newValue), thismPMT);
 	}
 
 	if (command == mPMT_DistPMTVessel){
 	  G4cout << "Set Distance of PMT(s) to pressure vessel to " << newValue  << " " << G4endl; //doesn't work
 	  //std::cout << "Set Cylinder Radius of MultiPMT to " << newValue  << " " << std::endl;
-	  WCSimDetector->SetmPMT_DistPMTVessel(mPMT_DistPMTVessel->GetNewDoubleValue(newValue));
+	  WCSimDetector->SetmPMT_DistPMTVessel(mPMT_DistPMTVessel->GetNewDoubleValue(newValue), thismPMT);
 	}
-	if (command == mPMT_orientation){
+	/* DEPRECATE
+	   if (command == mPMT_orientation){
 	  if(newValue == "Horizontal")
 	    WCSimDetector->SetmPMT_Orientation(HORIZONTAL);
 	  else if(newValue == "Vertical")
@@ -455,39 +467,39 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 	  else
 	    G4cout << "Undefined orientation wrt wall: reverting to default Perpendicular" << G4endl;
 	  
-	}
+	    } */
 	if (command == mPMT_ID_reflector_height){
 	  G4cout << "Set Height of reflector cone to " << newValue  << " " << G4endl;	
-	  WCSimDetector->SetmPMT_ReflectorHeight(mPMT_ID_reflector_height->GetNewDoubleValue(newValue));
+	  WCSimDetector->SetmPMT_ReflectorHeight(mPMT_ID_reflector_height->GetNewDoubleValue(newValue),thismPMT);
 	}
 	if (command == mPMT_ID_reflector_z_offset){
 	  G4cout << "Set Z position offset of reflector cone to " << newValue  << " " << G4endl;	
-	  WCSimDetector->SetmPMT_ReflectorZoffset(mPMT_ID_reflector_z_offset->GetNewDoubleValue(newValue));
+	  WCSimDetector->SetmPMT_ReflectorZoffset(mPMT_ID_reflector_z_offset->GetNewDoubleValue(newValue), thismPMT);
 	}
 	if (command == mPMT_ID_reflector_angle){
 	  G4cout << "Set Angle of reflector cone to " << newValue  << " " << G4endl;	
-	  WCSimDetector->SetmPMT_ReflectorAngle(mPMT_ID_reflector_angle->GetNewDoubleValue(newValue));
+	  WCSimDetector->SetmPMT_ReflectorAngle(mPMT_ID_reflector_angle->GetNewDoubleValue(newValue), thismPMT);
 	}
 	if (command == mPMT_material_outer){
-	  WCSimDetector->SetmPMT_MaterialOuter(newValue);
+	  WCSimDetector->SetmPMT_MaterialOuter(newValue, thismPMT);
 	}
 	if (command == mPMT_material_inner){
-	  WCSimDetector->SetmPMT_MaterialInner(newValue);
+	  WCSimDetector->SetmPMT_MaterialInner(newValue, thismPMT);
 	}
 	if(command == mPMT_material_outer_thickness){
-	  WCSimDetector->SetmPMT_MaterialOuterThickness(mPMT_material_outer_thickness->GetNewDoubleValue(newValue));
+	  WCSimDetector->SetmPMT_MaterialOuterThickness(mPMT_material_outer_thickness->GetNewDoubleValue(newValue), thismPMT);
 	}
 	if(command == mPMT_nID_PMTs){
-	  WCSimDetector->SetmPMT_nID(mPMT_nID_PMTs->GetNewIntValue(newValue));
+	  WCSimDetector->SetmPMT_nID(mPMT_nID_PMTs->GetNewIntValue(newValue), thismPMT);
 	}
 	if(command == mPMT_config){
-	  WCSimDetector->SetmPMT_Config(newValue);
+	  WCSimDetector->SetmPMT_Config(newValue, thismPMT);
 	}
 	
 	if (command == mPMT_PMTtype_inner)
-	  WCSimDetector->SetmPMT_PMTtype_inner(newValue);
+	  WCSimDetector->SetmPMT_PMTtype_inner(newValue, thismPMT);
 	if (command == mPMT_PMTtype_outer)
-	  WCSimDetector->SetmPMT_PMTtype_outer(newValue);
+	  WCSimDetector->SetmPMT_PMTtype_outer(newValue, thismPMT);
 	
 
 	if (command == mPMT_numModulesFixed){
@@ -496,11 +508,11 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 	}
 
 	if (command == mPMT_pmtOpeningAngle){
-	  WCSimDetector->SetmPMT_OpeningAngle(mPMT_pmtOpeningAngle->GetNewDoubleValue(newValue));  
+	  WCSimDetector->SetmPMT_OpeningAngle(mPMT_pmtOpeningAngle->GetNewDoubleValue(newValue), thismPMT);  
 	}
 
 	if (command == mPMT_material_pmtAssembly){
-	  WCSimDetector->SetmPMT_MaterialPMTassembly(newValue);
+	  WCSimDetector->SetmPMT_MaterialPMTassembly(newValue, thismPMT);
 	}
 
 	if(command == WCConstruct) {

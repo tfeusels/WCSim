@@ -25,13 +25,13 @@ public:
 public:
   
   void AddPMTDarkRate(WCSimWCDigitsCollection*);
-  void MakePeCorrection(WCSimWCHitsCollection*);
+  void MakePeCorrection(WCSimWCHitsCollection*, G4int);
   void Digitize();
   G4double GetTriggerTime(int i) { return TriggerTimes[i];}
   // void SetConversion(double iconvrate){ ConvRate = iconvrate; }
   //  static G4double GetLongTime() { return LongTime;}
   
-  G4double rn1pe();
+  G4double rn1pe(int i);
   G4double peSmeared;
   // double ConvRate; // kHz
   std::vector<G4double> TriggerTimes;

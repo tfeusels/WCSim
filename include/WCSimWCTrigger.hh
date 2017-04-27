@@ -81,9 +81,9 @@ public:
   ///Set the posttrigger window for the SaveFailures trigger (value will be forced positive)
   void SetSaveFailuresPostTriggerWindow(G4int window) { saveFailuresPostTriggerWindow = + abs(window); }
   
-  ///Knowledge of the dark rate (use for automatically adjusting for noise)
+  ///Knowledge of the dark rate (use for automatically adjusting for noise) : ONLY VALID for uniform ID PMT dark rate
   void SetDarkRate(double idarkrate){ PMTDarkRate = idarkrate; }
-
+  
   ///Save current values of options
   void SaveOptionsToOutput(WCSimRootOptions * wcopt);
   

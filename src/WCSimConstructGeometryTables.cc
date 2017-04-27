@@ -57,7 +57,8 @@ void WCSimDetectorConstruction::GetWCGeom
 
     // Stash info in data member
     // AH Need to store this in CM for it to be understood by SK code
-    WCPMTSize = WCPMTRadius/cm;// I think this is just a variable no if needed
+    WCPMTSize[0] = WCPMTRadius[0]/cm;// I think this is just a variable no if needed
+    WCPMTSize[1] = WCPMTRadius[1]/cm;// I think this is just a variable no if needed
 
 
     // Note WC can be off-center... get both extremities
@@ -109,19 +110,52 @@ void WCSimDetectorConstruction::DescribeAndRegisterPMT(G4VPhysicalVolume* aPV ,i
  
   //TF: To Consider: add a separate table for mPMT positions? Need to use its orientation anyway
   // Could be useful for the near future. Need to add an == WCMultiPMT here then.
-  if (aPV->GetName()== WCIDCollectionName ||aPV->GetName()== WCODCollectionName ) 
+  if (aPV->GetName() == WCIDCollectionName[0] ||
+      aPV->GetName() == WCIDCollectionName[1] ||
+      aPV->GetName()== WCODCollectionName ) 
     {
 
     // First increment the number of PMTs in the tank.
     totalNumPMTs++;  
-    
+
+    WCSimPMTObject * PMT;
+    if(aPV->GetName() == WCIDCollectionName[0]){
+      totalNumPMTsID[0]++;
+      PMT = GetPMTPointer(WCIDCollectionName[0]);
+      collectionIDMap[totalNumPMTs] = 0;
+    }
+    if(IDnoTypes > 1 && aPV->GetName() == WCIDCollectionName[1]){
+      totalNumPMTsID[1]++;
+      PMT = GetPMTPointer(WCIDCollectionName[1]);
+      collectionIDMap[totalNumPMTs] = 1;
+    }
+
     // Put the location of this tube into the location map so we can find
     // its ID later.  It is coded by its tubeTag string.
     // This scheme must match that used in WCSimWCSD::ProcessHits()
 
     std::string tubeTag;
-    for (int i=0; i <= aDepth; i++)
+    int mPMT_pmtno = -1;
+    bool foundString = false;
+    //
+    
+    for (int i=0; i <= aDepth; i++){
       tubeTag += ":" + replicaNoString[i];
+      std::string::size_type position = replicaNoString[i].find("pmt-");
+      if( position == 0) {
+	foundString = true;
+	mPMT_pmtno = atoi(replicaNoString[i].substr(position+4).c_str())+1;
+	if(mPMT_pmtno == 1)
+	  totalNum_mPMTs++;
+      }
+    }
+    if(!foundString){
+      // to distinguish mPMT PMTs from single PMTs:
+      mPMT_pmtno = 0;
+      totalNum_mPMTs++;
+    }
+    
+
     // G4cout << tubeTag << G4endl;
     
     if ( tubeLocationMap.find(tubeTag) != tubeLocationMap.end() ) {
@@ -136,10 +170,21 @@ void WCSimDetectorConstruction::DescribeAndRegisterPMT(G4VPhysicalVolume* aPV ,i
     // Put the transform for this tube into the map keyed by its ID
     tubeIDMap[totalNumPMTs] = aTransform;
    
-    
-    //G4cout <<  "depth " << depth.str() << G4endl;
+    //G4cout << "DEBUG " << G4endl;
+    //G4cout <<  "depth " << aDepth << G4endl;
     //G4cout << "tubeLocationmap[" << tubeTag  << "]= " << tubeLocationMap[tubeTag] << "\n";
+    //G4cout << "TESTING : (" << totalNum_mPMTs << ", " << mPMT_pmtno << ") " << G4endl;
+
+    mPMTIDMap[totalNumPMTs] = std::make_pair(totalNum_mPMTs,mPMT_pmtno);
+
+    //Grab default dark rates from PMTObject, later: through DarkRateMessenger define
+    //txt file/mysql file with tubeID - rate/conv factor info, update PmtInfo and use those measured values.
+    //G4cout << "TESTING : (" << totalNumPMTs << ", " << PMT->GetDarkRate() << ", " << PMT->GetDarkRateConversionFactor() << ")" << G4endl;
+    DarkRateMap[totalNumPMTs] = std::make_pair(PMT->GetDarkRate(), PMT->GetDarkRateConversionFactor());
+
     
+
+
     // Print
     //     G4cout << "Tube: "<<std::setw(4) << totalNumPMTs << " " << tubeTag
     //	   << " Pos:" << aTransform.getTranslation()/cm 
@@ -176,8 +221,16 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
     geoFile << setw(8)<< innerradius;
     geoFile << setw(8)<<WCCylInfo[2];
   }
-  geoFile << setw(10)<<totalNumPMTs;
-  geoFile << setw(8)<<WCPMTSize << setw(4)  <<G4endl;
+  geoFile << setw(12)<<totalNumPMTs;
+  if(GetNoIDtypes() > 1){
+    geoFile << setw(12) << totalNumPMTsID[0];
+    geoFile << setw(12) << totalNumPMTsID[1] << G4endl;
+  }
+  geoFile << setw(8)<<WCPMTSize[0];
+  if(GetNoIDtypes() > 1)
+    geoFile << setw(8) << WCPMTSize[1] << G4endl;
+  else
+    geoFile << setw(4)  <<G4endl;
 
   geoFile << setw(8)<< WCOffset(0)<< setw(8)<<WCOffset(1)<<
     setw(8) << WCOffset(2)<<G4endl;
@@ -213,8 +266,11 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
     else // barrel
     {cylLocation=1;}
     
+    // Future: add individual dark rates to this txt file.
     geoFile.precision(9);
      geoFile << setw(4) << tubeID 
+	     << " " << setw(4) << mPMTIDMap[tubeID].first
+	     << " " << setw(4) << mPMTIDMap[tubeID].second
  	    << " " << setw(8) << newTransform.getTranslation().getX()/cm
  	    << " " << setw(8) << newTransform.getTranslation().getY()/cm
  	    << " " << setw(8) << newTransform.getTranslation().getZ()/cm
@@ -231,8 +287,11 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
 					      pmtOrientation.x(),
 					      pmtOrientation.y(),
 					      pmtOrientation.z(),
-					      tubeID);
-     
+					      tubeID,
+					      mPMTIDMap[tubeID].first,
+					      mPMTIDMap[tubeID].second);
+     new_pmt->Set_Darkrate(DarkRateMap[tubeID].first, DarkRateMap[tubeID].second);
+     new_pmt->Set_collectionID(collectionIDMap[tubeID]);
      fpmts.push_back(new_pmt);
 
   }

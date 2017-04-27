@@ -26,7 +26,8 @@ class WCSimDetectorMessenger: public G4UImessenger
   
  public:
   void         SetNewValue(G4UIcommand* command, G4String newValues);
- 
+  void SetThismPMT(G4int value){thismPMT = value;}
+  
  private:
   WCSimDetectorConstruction* WCSimDetector;
 
@@ -43,6 +44,7 @@ class WCSimDetectorMessenger: public G4UImessenger
   G4UIcmdWithADoubleAndUnit* waterTank_Length;
 
   G4UIdirectory*             mPMTDir;
+  G4UIcmdWithAnInteger*      mPMT_thisOne;
   G4UIcmdWithADoubleAndUnit* mPMT_CylHeight;
   G4UIcmdWithADoubleAndUnit* mPMT_CylRadius;
   G4UIcmdWithADoubleAndUnit* mPMT_CylRadiusCurv;
@@ -68,6 +70,7 @@ class WCSimDetectorMessenger: public G4UImessenger
   G4UIcmdWithAString* distortionCmd;
   G4UIcmdWithoutParameter* WCConstruct;
 
+  G4int thismPMT;
 };
 
 #endif

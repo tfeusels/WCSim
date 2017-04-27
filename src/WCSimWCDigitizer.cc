@@ -76,7 +76,7 @@ void WCSimWCDigitizerBase::GetVariables()
 void WCSimWCDigitizerBase::Digitize()
 {
   //Input is WCSimWCDigitsCollection with raw PMT hits (photon + dark noise)
-  //Output is WCSimWCDigitsCollection with digitied PMT hits
+  //Output is WCSimWCDigitsCollection with digitized PMT hits
 
   //Clear the DigiStoreHitMap
   ReInitialize();

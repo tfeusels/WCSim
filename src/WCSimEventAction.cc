@@ -70,6 +70,10 @@ WCSimEventAction::WCSimEventAction(WCSimRunAction* myRun,
   WCSimWCPMT* WCDMPMT = new WCSimWCPMT( "WCReadoutPMT", myDetector);
   DMman->AddNewModule(WCDMPMT);
 
+  ////// TF: later: for hybrid, different digitizer/response module for different ID PMTs.
+  ////// Far from ready yet.
+
+
   //create dark noise module
   WCSimWCAddDarkNoise* WCDNM = new WCSimWCAddDarkNoise("WCDarkNoise", detectorConstructor);
   DMman->AddNewModule(WCDNM);
@@ -125,7 +129,7 @@ void WCSimEventAction::BeginOfEventAction(const G4Event*)
     CreateDAQInstances();
 
     //and save options in output file
-    G4DigiManager* DMman = G4DigiManager::GetDMpointer();
+    G4DigiManager* DMman = G4DigiManager::GetDMpointer();     // TF: used anywhere???
 
   }
 }
@@ -163,18 +167,21 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
   //  Get WC Hit Collection
   // ----------------------------------------------------------------------
 
+  /*
   G4SDManager* SDman = G4SDManager::GetSDMpointer();
 
   // Get Hit collection of this event
+  // TF: DEPRECATED (WCHC not used anymore)
+
   G4HCofThisEvent* HCE         = evt->GetHCofThisEvent();
   WCSimWCHitsCollection* WCHC = 0;
-  G4String WCIDCollectionName = detectorConstructor->GetIDCollectionName();
+  G4String WCIDCollectionName = detectorConstructor->GetIDCollectionName(0); // ONLY VALID for ID 0, but not used anyway
   if (HCE)
   { 
     G4String name =   WCIDCollectionName;
     G4int collectionID = SDman->GetCollectionID(name);
     WCHC = (WCSimWCHitsCollection*)HCE->GetHC(collectionID);
-  }
+    }*/
 
   // To use Do like This:
   // --------------------
@@ -240,8 +247,8 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
     (WCSimWCTriggerBase*)DMman->FindDigitizerModule("WCReadout");
   
   //tell it the dark noise rate (for calculating the average dark occupancy -> can adjust the NDigits threshold)
-  WCTM->SetDarkRate(WCDNM->GetDarkRate());
-  
+  WCTM->SetDarkRate(WCDNM->GetDarkRate());   // incompatible with individual PMT dark rates, but not used anymore
+
   //Apply the trigger
   // This takes the digits, and places them into trigger gates
   // Also throws away digits not contained in an trigger gate
@@ -249,7 +256,7 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
 
 #ifdef TIME_DAQ_STEPS
   ms->Stop();
-  G4cout << " Digtization :  Real = " << ms->RealTime() 
+  G4cout << " Digitization :  Real = " << ms->RealTime() 
     	    << " ; CPU = " << ms->CpuTime() << "\n";  
 #endif
 
@@ -779,6 +786,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
 
   wcsimrootevent->SetNumTubesHit(jhfNtuple.numTubesHit);
 
+  std::vector<WCSimPmtInfo*> *fpmts = detectorConstructor->Get_Pmts();
 #ifdef _SAVE_RAW_HITS
 
   if (WCDC_hits) 
@@ -797,6 +805,8 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
     //loop over the DigitsCollection
     for(int idigi = 0; idigi < WCDC_hits->entries(); idigi++) {
       int digi_tubeid = (*WCDC_hits)[idigi]->GetTubeID();
+      WCSimPmtInfo *pmt = ((WCSimPmtInfo*)fpmts->at(digi_tubeid -1));
+
       for(G4int id = 0; id < (*WCDC_hits)[idigi]->GetTotalPe(); id++){
 	hit_time_true  = (*WCDC_hits)[idigi]->GetPreSmearTime(id);
 	hit_parentid = (*WCDC_hits)[idigi]->GetParentID(id);
@@ -821,6 +831,8 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
       }
 #endif
       wcsimrootevent->AddCherenkovHit(digi_tubeid,
+				      pmt->Get_mPMTid(),
+				      pmt->Get_mPMT_pmtid(),
 				      truetime,
 				      primaryParentID);
       smeartime.clear();
@@ -853,6 +865,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
 	      std::vector<float> vec_time                = (*WCDC)[k]->GetTime(index);
 	      std::vector<std::vector<int> > vec_digicomp = (*WCDC)[k]->GetDigiCompositionInfo(index);
 	      const int tubeID                           = (*WCDC)[k]->GetTubeID();
+	      WCSimPmtInfo *pmt = ((WCSimPmtInfo*)fpmts->at(tubeID -1));
 	      assert(vec_pe.size() == vec_time.size());
 	      assert(vec_pe.size() == vec_digicomp.size());
 	      for(unsigned int iv = 0; iv < vec_pe.size(); iv++) {
@@ -870,7 +883,8 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
 #endif
 		assert(vec_digicomp[iv].size() > 0);
 		wcsimrootevent->AddCherenkovDigiHit(vec_pe[iv], vec_time[iv],
-						    tubeID, vec_digicomp[iv]);
+						    tubeID, pmt->Get_mPMTid(), pmt->Get_mPMT_pmtid(),
+						    vec_digicomp[iv]);
 		sumq_tmp += vec_pe[iv];
 		countdigihits++;
 	      }//iv
@@ -1036,7 +1050,6 @@ void WCSimEventAction::FillFlatTree(G4int event_id,
   
   
   // Add the Cherenkov hits
-  int nMpmtID_pmts = detectorConstructor->GetmPMT_nID();
 
 #ifdef _SAVE_RAW_HITS
 
@@ -1044,9 +1057,14 @@ void WCSimEventAction::FillFlatTree(G4int event_id,
   // Num Tubes hit wo noise: count myself
   // Total charge with noise
   // Total charge without noise
-  int totNumHits = 0;
+  int totNumHits = 0;                 // for the whole ID detector
   int totNumHits_noDN = 0;
   int numTubesHit_noDN= 0;
+
+  int totNumHitsID[2] = {0,0};                 // for the separate mPMT and single PMT
+  int totNumHitsID_noDN[2] = {0,0};
+  int numTubesHitID[2] = {0,0};
+  int numTubesHitID_noDN[2] = {0,0};
 
   // Easier to grab PMT orientation from detector constructor than from G4RotationMatrix
   std::vector<WCSimPmtInfo*> *fpmts = detectorConstructor->Get_Pmts();
@@ -1088,8 +1106,8 @@ void WCSimEventAction::FillFlatTree(G4int event_id,
 	thisNtuple->parentid[totNumHits] = hit_parentid;
 	thisNtuple->vector_index[totNumHits] = id;
 	thisNtuple->tubeid[totNumHits] = digi_tubeid;
-	thisNtuple->mPMTid[totNumHits] = digi_tubeid/nMpmtID_pmts;
- 	thisNtuple->mPMT_pmtid[totNumHits] = (digi_tubeid%nMpmtID_pmts == 0 ? nMpmtID_pmts : digi_tubeid%nMpmtID_pmts ); // No. 1 to nID
+	thisNtuple->mPMTid[totNumHits] = pmt->Get_mPMTid();
+ 	thisNtuple->mPMT_pmtid[totNumHits] = pmt->Get_mPMT_pmtid();
 
 	thisNtuple->trackid[totNumHits] = (*WCDC_hits)[idigi]->GetTrackID();
 	G4ThreeVector pos = (*WCDC_hits)[idigi]->GetPos();       // Can also grab it from theDetector also.
@@ -1100,14 +1118,36 @@ void WCSimEventAction::FillFlatTree(G4int event_id,
 	thisNtuple->tube_diry[totNumHits] = pmt->Get_orieny();
 	thisNtuple->tube_dirz[totNumHits] = pmt->Get_orienz();
 	totNumHits++;
+	if(pmt->Get_mPMT_pmtid() == 0) // single PMTs are tagged by a zero in ConstructGeometryTables
+	  totNumHitsID[0]++;
+	else if(pmt->Get_mPMT_pmtid() > 0)
+	  totNumHitsID[1]++;
+
 	if(hit_parentid > 0){
 	  totNumHits_noDN++;
-	  
+ 	  
+	  if(pmt->Get_mPMT_pmtid() == 0) 
+	    totNumHitsID_noDN[0]++;
+	  else if(pmt->Get_mPMT_pmtid() > 0)
+	    totNumHitsID_noDN[1]++;
+
 	} else if(hit_parentid == -1)
-	  numNoiseHits ++;
-      }
-      if (numNoiseHits < (*WCDC_hits)[idigi]->GetTotalPe())
+	  numNoiseHits++;
+      }// end loop over hits within tube
+
+      if(pmt->Get_mPMT_pmtid() == 0)
+	numTubesHitID[0]++;
+      else if(pmt->Get_mPMT_pmtid() > 0)
+	numTubesHitID[1]++;
+
+      if (numNoiseHits < (*WCDC_hits)[idigi]->GetTotalPe()){
 	numTubesHit_noDN++;
+	
+	if(pmt->Get_mPMT_pmtid() == 0)
+	  numTubesHitID_noDN[0]++;
+	else if(pmt->Get_mPMT_pmtid() > 0)
+	  numTubesHitID_noDN[1]++;
+      }
       //Subtract noiseHits from realHits:
       for(G4int id = totNumHits; id > (totNumHits-(*WCDC_hits)[idigi]->GetTotalPe()); id--){
 	thisNtuple->totalPe_noNoise[id-1] = (*WCDC_hits)[idigi]->GetTotalPe() - numNoiseHits; //id-1 because I already did totNumHits++ above for next PMT
@@ -1118,6 +1158,13 @@ void WCSimEventAction::FillFlatTree(G4int event_id,
   thisNtuple->numTubesHit_noNoise= numTubesHit_noDN;
   thisNtuple->totalNumHits = totNumHits;
   thisNtuple->totalNumHits_noNoise = totNumHits_noDN;
+  for(G4int id = 0; id < 2; id++){
+    thisNtuple->totalNumHitsID[id] = totNumHitsID[id];
+    thisNtuple->totalNumHitsID_noNoise[id] = totNumHitsID_noDN[id];
+    thisNtuple->numTubesHitID[id] = numTubesHitID[id];
+    thisNtuple->numTubesHitID_noNoise[id] = numTubesHitID_noDN[id];
+  }
+
 #endif //_SAVE_RAW_HITS
     
   // Setup Sub-events: only for Trigger and Digitized info. Everything else has no relation to the trigger
@@ -1171,6 +1218,8 @@ void WCSimEventAction::FillFlatTree(G4int event_id,
     if (WCDC) {
       G4float sumq_tmp = 0.;
       int countdigihits = 0;
+      int countdigihitsID[2] = {0,0};
+      int numdigitubeshitID[2] = {0,0};
 
       // An entry per Tube with hits per Trigger
       for (int k = 0; k < WCDC->entries() ; k++) {
@@ -1196,8 +1245,8 @@ void WCSimEventAction::FillFlatTree(G4int event_id,
 	    // Note : once CPU time becomes an issue: grab these once outside this loop
 	    //        from theDetector and store only here, however, iv > 0 is rare!!
 	    thisNtuple->digitubeid[countdigihits] = tubeID;
-	    thisNtuple->digimPMTid[countdigihits] = tubeID/nMpmtID_pmts;
-	    thisNtuple->digimPMT_pmtid[countdigihits] = (tubeID%nMpmtID_pmts == 0 ? nMpmtID_pmts : tubeID%nMpmtID_pmts ); // No. 1 to nID
+	    thisNtuple->digimPMTid[countdigihits] = pmt->Get_mPMTid();
+	    thisNtuple->digimPMT_pmtid[countdigihits] = pmt->Get_mPMT_pmtid();
 	    thisNtuple->digitube_x[countdigihits] = pmt->Get_transx();        //already in CLHEP::cm
 	    thisNtuple->digitube_y[countdigihits] = pmt->Get_transy();
 	    thisNtuple->digitube_z[countdigihits] = pmt->Get_transz();
@@ -1211,11 +1260,27 @@ void WCSimEventAction::FillFlatTree(G4int event_id,
 
 	    /// vec_digicomp[iv]);                            ToDo if interesting at some point
 	    countdigihits++;
+
+	    if(pmt->Get_mPMT_pmtid() == 0)
+	      countdigihitsID[0]++;
+	    else if(pmt->Get_mPMT_pmtid() > 0)
+	      countdigihitsID[1]++;
+
 	  }//iv
+	  
+	  if(pmt->Get_mPMT_pmtid() == 0)
+	    numdigitubeshitID[0]++;
+	  else if(pmt->Get_mPMT_pmtid() > 0)
+	    numdigitubeshitID[1]++;
+	  
 	}//Digit exists in Gate
       }//k
-      thisNtuple->totalNumDigiHits  = countdigihits;
+      thisNtuple->totalNumDigiHits  = countdigihits;          
       thisNtuple->numDigiTubesHit  = WCDC->entries();
+      for(int ij=0 ; ij < 2; ij++){
+	thisNtuple->totalNumDigiHitsID[ij]  = countdigihitsID[ij];   
+	thisNtuple->numDigiTubesHitID[ij]  = numdigitubeshitID[ij];
+      }
       thisNtuple->sumq             = sumq_tmp;
     }//end WCDC
 

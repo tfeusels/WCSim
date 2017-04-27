@@ -17,6 +17,9 @@
 #include "G4SolidStore.hh"
 
 std::map<int, G4Transform3D> WCSimDetectorConstruction::tubeIDMap;
+std::map<int, std::pair<int, int> > WCSimDetectorConstruction::mPMTIDMap;
+std::map<int, std::pair<float, float> > WCSimDetectorConstruction::DarkRateMap;
+std::map<int, int>  WCSimDetectorConstruction::collectionIDMap;
 //std::map<int, cyl_location>  WCSimDetectorConstruction::tubeCylLocation;
 //hash_map<std::string, int, hash<std::string> > 
 //WCSimDetectorConstruction::tubeLocationMap_old;    //deprecated !!
@@ -48,39 +51,45 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuning
   //-----------------------------------------------------
 
   WCSimDetectorConstruction::tubeIDMap.clear();
+  WCSimDetectorConstruction::mPMTIDMap.clear();
+  WCSimDetectorConstruction::DarkRateMap.clear();
   //WCSimDetectorConstruction::tubeCylLocation.clear();// (JF) Removed
   WCSimDetectorConstruction::tubeLocationMap.clear();
   WCSimDetectorConstruction::PMTLogicalVolumes.clear();
   totalNumPMTs = 0;
-  WCPMTExposeHeight= 0.;
-  WCPMTName = "";
-  WCPMTName2 = "";
+  totalNum_mPMTs = 0;
+  IDnoTypes = 1;
+  for(G4int i = 0; i < 2 ; i++){
+    totalNumPMTsID[i] = 0;
 
-  //---------------------------------------------------
-  // Need to define defaults for all mPMT parameters 
-  // defaults are chosen that they are valid for a SK detector
-  //--------------------------------------------------
-  vessel_cyl_height = 0.1*mm;   // LATER: when tested, default WITH PMT cover!
-  vessel_radius_curv = 0.1*mm;
-  vessel_radius = 0.1*mm;
-  dist_pmt_vessel = 0.*mm;
-  orientation = PERPENDICULAR;
-  mPMT_ID_PMT = "PMT3inchR12199_02";
-  mPMT_OD_PMT = "";
-  mPMT_outer_material = "Water";
-  mPMT_inner_material = "Water";
-  mPMT_outer_material_d = 0.*CLHEP::mm;
-  // Radius of cone at z=reflectorHeight
-  id_reflector_height = 0.*CLHEP::mm;
-  id_reflector_z_offset = 0.*CLHEP::mm;
-  id_reflector_angle = 0.*CLHEP::deg; 
-  // parameters related to filling the ID mPMT
-  nID_PMTs = 1;   //per mPMT
-  config_file = "";
+    WCPMTExposeHeight[i]= 0.;
+    WCPMTName[i] = "";
+    WCIDCollectionName[i] = "";
+    //---------------------------------------------------
+    // Need to define defaults for all mPMT parameters 
+    // defaults are chosen that they are valid for a SK detector
+    //--------------------------------------------------
+    vessel_cyl_height[i] = 0.*mm;   // LATER: when tested, default WITH PMT cover!
+    vessel_radius_curv[i] = 0.*mm;
+    vessel_radius[i] = 0.*mm;
+    dist_pmt_vessel[i] = 0.*mm;
+    orientation[i] = PERPENDICULAR;
+    mPMT_ID_PMT[i] = "PMT3inchR12199_02";
+    mPMT_OD_PMT[i] = "";
+    mPMT_outer_material[i] = "Water";
+    mPMT_inner_material[i] = "Water";
+    mPMT_outer_material_d[i] = 0.*CLHEP::mm;
+    // Radius of cone at z=reflectorHeight
+    id_reflector_height[i] = 0.*CLHEP::mm;
+    id_reflector_z_offset[i] = 0.*CLHEP::mm;
+    id_reflector_angle[i] = 0.*CLHEP::deg; 
+    // parameters related to filling the ID mPMT
+    nID_PMTs[i] = 1;   //per mPMT
+    config_file[i] = "";
+    mPMT_material_pmtAssembly[i] = "Water";
+    mPMT_pmt_openingAngle[i] = 0.*CLHEP::deg;  
+  }
   fix_nModules = false;
-  mPMT_material_pmtAssembly = "Water";
-  mPMT_pmt_openingAngle = 0.*CLHEP::deg;  
-
 
   //SetTestSinglemPMTGeometry();
   SetSuperKGeometry();
@@ -150,6 +159,9 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   vAzimOffset.clear();
 
   totalNumPMTs = 0;
+  totalNumPMTsID[0] = 0;
+  totalNumPMTsID[1] = 0;
+  totalNum_mPMTs = 0;
   
   //-----------------------------------------------------
   // Create Logical Volumes
@@ -228,6 +240,8 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
 
   // Reset the tubeID and tubeLocation maps before refilling them
   tubeIDMap.clear();
+  mPMTIDMap.clear();
+  DarkRateMap.clear();
   tubeLocationMap.clear();
 
 
@@ -243,7 +257,7 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   TraverseReplicas(physiWCBox, 0, G4Transform3D(), 
 		   &WCSimDetectorConstruction::GetWCGeom) ;
   
-  DumpGeometryTableToFile();
+  DumpGeometryTableToFile(); // Also fills PmtInfo which is used throughout the code!
 
   
 

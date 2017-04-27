@@ -34,7 +34,7 @@ WCSimRunAction::WCSimRunAction(WCSimDetectorConstruction* test, WCSimRandomParam
   wcsimdetector = test;
   messenger = new WCSimRunActionMessenger(this);
 
-  useDefaultROOTout = true; //false;
+  useDefaultROOTout = false; //true; //false;                ////// WORK IN PROGRESS, slow, test later
   wcsimrootoptions = new WCSimRootOptions();
 
 }
@@ -80,7 +80,7 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* /*aRun*/)
     Int_t bufsize = 64000;
     
     //  TBranch *branch = tree->Branch("wcsimrootsuperevent", "Jhf2kmrootsuperevent", &wcsimrootsuperevent, bufsize,0);
-    TBranch *branch = WCSimTree->Branch("wcsimrootevent", "WCSimRootEvent", &wcsimrootsuperevent, bufsize,2);
+    WCSimTree->Branch("wcsimrootevent", "WCSimRootEvent", &wcsimrootsuperevent, bufsize,2);
     
     // Geometry tree
     
@@ -113,31 +113,33 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* /*aRun*/)
   geomTree->Branch("GeometryType",geo_type_string,"GeometryType[20]/Char_t");         //example: for std::string data_ : tree->Branch(branchname.c_str(), (void*)data_->c_str(),leafdescription.c_str());
   geomTree->Branch("CylinderRadius",&cyl_radius,"CylinderRadius/Double_t");
   geomTree->Branch("CylinderLength",&cyl_length,"CylinderLength/Double_t");
-  geomTree->Branch("PMTtype_ID",pmt_id_string,"PMTtype_ID[50]/Char_t");
-  geomTree->Branch("PMTradius_ID",&pmt_radius_id,"PMTradius_ID/Double_t");
+  geomTree->Branch("PMTtype_ID0",pmt_id0_string,"PMTtype_ID0[50]/Char_t");
+  geomTree->Branch("PMTtype_ID1",pmt_id1_string,"PMTtype_ID1[50]/Char_t");
+  geomTree->Branch("PMTradius_ID",pmt_radius_id,"PMTradius_ID[2]/Double_t");
   geomTree->Branch("PMTtype_OD",pmt_od_string,"PMTtype_OD[50]/Char_t");
   geomTree->Branch("PMTradius_OD",&pmt_radius_od,"PMTradius_OD/Double_t");
-  geomTree->Branch("numPMT_ID",&numPMT_id,"numPMT_ID/Int_t");
+  geomTree->Branch("numPMT_ID",numPMT_id,"numPMT_ID[2]/Int_t");
+  geomTree->Branch("numPMT_ID_tot",&numPMT_id_tot,"numPMT_ID_tot/Int_t");
   geomTree->Branch("numPMT_OD",&numPMT_od,"numPMT_OD/Int_t");
   geomTree->Branch("Orientation",&orient,"Orientation/Int_t");
   geomTree->Branch("Offset_x",&offset_x,"Offset_x/Double_t");
   geomTree->Branch("Offset_y",&offset_y,"Offset_y/Double_t");
   geomTree->Branch("Offset_z",&offset_z,"Offset_z/Double_t");
   //mPMT info:
-  geomTree->Branch("num_mPMT",&num_mPMT,"num_mPMT/Int_t");   //ID PMTs/n ID per mPMT
+  geomTree->Branch("num_mPMT",num_mPMT,"num_mPMT[2]/Int_t");   //ID PMTs/n ID per mPMT
   //PMT info:
-  geomTree->Branch("Tube",tube_id,"Tube[numPMT_ID]/Int_t");      //ToDo: Add OD and OD identifier
-  geomTree->Branch("mPMT",mPMT_id,"mPMT[numPMT_ID]/Int_t");      //mPMT: (mPMT - mPMT_PMT) pairs
-  geomTree->Branch("mPMT_pmt",mPMT_pmt_id,"mPMT_pmt[numPMT_ID]/Int_t");
-  geomTree->Branch("x",tube_x,"x[numPMT_ID]/Double_t");
-  geomTree->Branch("y",tube_y,"y[numPMT_ID]/Double_t");
-  geomTree->Branch("z",tube_z,"z[numPMT_ID]/Double_t");
-  geomTree->Branch("cylLocation",cylLocation,"cylLocation[numPMT_ID]/Int_t");  
-  geomTree->Branch("direction_x",dir_x,"direction_x[numPMT_ID]/Double_t");
-  geomTree->Branch("direction_y",dir_y,"direction_y[numPMT_ID]/Double_t");
-  geomTree->Branch("direction_z",dir_z,"direction_z[numPMT_ID]/Double_t");
-  geomTree->Branch("phi",phi,"phi[numPMT_ID]/Double_t");
-  geomTree->Branch("theta",theta,"theta[numPMT_ID]/Double_t");
+  geomTree->Branch("Tube",tube_id,"Tube[numPMT_ID_tot]/Int_t");      //ToDo: Add OD and OD identifier
+  geomTree->Branch("mPMT",mPMT_id,"mPMT[numPMT_ID_tot]/Int_t");      //mPMT: (mPMT - mPMT_PMT) pairs
+  geomTree->Branch("mPMT_pmt",mPMT_pmt_id,"mPMT_pmt[numPMT_ID_tot]/Int_t");
+  geomTree->Branch("x",tube_x,"x[numPMT_ID_tot]/Double_t");
+  geomTree->Branch("y",tube_y,"y[numPMT_ID_tot]/Double_t");
+  geomTree->Branch("z",tube_z,"z[numPMT_ID_tot]/Double_t");
+  geomTree->Branch("cylLocation",cylLocation,"cylLocation[numPMT_ID_tot]/Int_t");  
+  geomTree->Branch("direction_x",dir_x,"direction_x[numPMT_ID_tot]/Double_t");
+  geomTree->Branch("direction_y",dir_y,"direction_y[numPMT_ID_tot]/Double_t");
+  geomTree->Branch("direction_z",dir_z,"direction_z[numPMT_ID_tot]/Double_t");
+  geomTree->Branch("phi",phi,"phi[numPMT_ID_tot]/Double_t");
+  geomTree->Branch("theta",theta,"theta[numPMT_ID_tot]/Double_t");
   
   //Fill Branches
   //Write Trees
@@ -201,9 +203,13 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* /*aRun*/)
   cherenkovHitsTree->Branch("Event",&event,"Event/Int_t");
   cherenkovHitsTree->Branch("SubEvent",&subevent,"SubEvent/Int_t");
   cherenkovHitsTree->Branch("NHits",&(evNtup->totalNumHits),"NHits/Int_t");   // #PMTs x #(Ch+DN)hits/PMTs
-  cherenkovHitsTree->Branch("NHits_noDN",&(evNtup->totalNumHits_noNoise),"NHits_noDN/Int_t");   // #PMTs x #(Ch+DN)hits/PMTs
+  cherenkovHitsTree->Branch("NHits_noDN",&(evNtup->totalNumHits_noNoise),"NHits_noDN/Int_t");   // #PMTs x #(Ch)hits/PMTs
+  cherenkovHitsTree->Branch("NHitsID",(evNtup->totalNumHitsID),"NHitsID[2]/Int_t");   // #PMTs x #(Ch+DN)hits/PMTs
+  cherenkovHitsTree->Branch("NHitsID_noDN",(evNtup->totalNumHitsID_noNoise),"NHits_noDN[2]/Int_t");   // #PMTs x #(Ch)hits/PMTs
   cherenkovHitsTree->Branch("NPMTs",&(evNtup->numTubesHit),"NPMTs/Int_t");
   cherenkovHitsTree->Branch("NPMTs_noDN",&(evNtup->numTubesHit_noNoise),"NPMTs_noDN/Int_t");
+  cherenkovHitsTree->Branch("NPMTsID",(evNtup->numTubesHitID),"NPMTs[2]/Int_t");
+  cherenkovHitsTree->Branch("NPMTsID_noDN",(evNtup->numTubesHitID_noNoise),"NPMTs_noDN[2]/Int_t");
   cherenkovHitsTree->Branch("Time",(evNtup->truetime),"Time[NHits]/Float_t");
   cherenkovHitsTree->Branch("PMT_QTot",(evNtup->totalPe),"PMT_QTot[NHits]/Int_t");
   cherenkovHitsTree->Branch("PMT_QTot_noDN",(evNtup->totalPe_noNoise),"PMT_Qtot_noDN[NHits]/Int_t");
@@ -226,6 +232,8 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* /*aRun*/)
   cherenkovDigiHitsTree->Branch("SubEvent",&subevent,"SubEvent/Int_t");
   cherenkovDigiHitsTree->Branch("NDigiHits",&(evNtup->totalNumDigiHits),"NDigiHits/Int_t");
   cherenkovDigiHitsTree->Branch("NDigiPMTs",&(evNtup->numDigiTubesHit),"NDigiPMTs/Int_t");
+  cherenkovDigiHitsTree->Branch("NDigiHitsID",(evNtup->totalNumDigiHitsID),"NDigiHitsID[2]/Int_t");
+  cherenkovDigiHitsTree->Branch("NDigiPMTsID",(evNtup->numDigiTubesHitID),"NDigiPMTsID[2]/Int_t");
   cherenkovDigiHitsTree->Branch("QTotDigi",&(evNtup->sumq),"QTotDigi/Float_t");
   cherenkovDigiHitsTree->Branch("Q",(evNtup->q),"Q[NDigiHits]/Float_t");
   cherenkovDigiHitsTree->Branch("T",(evNtup->t),"T[NDigiHits]/Float_t");
@@ -348,14 +356,20 @@ void WCSimRunAction::EndOfRunAction(const G4Run*)
 
 void WCSimRunAction::FillGeoTree(){
   // Fill the geometry tree
-  G4int geo_type;
+  G4int geo_type = 0.;
   G4double cylinfo[3];
-  G4double pmtradius;
-  G4int numpmt;
-  G4int orientation;
+  G4double pmtradius0 = 0.;
+  G4double pmtradius1 = 0.;
+  G4int numpmt = -1;
+  G4int numpmt_id0 = -1;
+  G4int numpmt_id1 = -1;
+  G4int orientation = -1;
   Float_t offset[3];
   
-  Int_t tubeNo;
+  Int_t tubeNo = -1;
+  Int_t mPMTNo = -1;
+  Int_t mPMT_pmtNo = -1;
+  Int_t collID = 0;
   Float_t pos[3];
   Float_t rot[3];
   Int_t cylLoc;
@@ -379,11 +393,15 @@ void WCSimRunAction::FillGeoTree(){
   }
 
 
-  pmtradius = wcsimdetector->GetPMTSize1();
+  pmtradius0 = wcsimdetector->GetPMTSize1(0);
+  pmtradius1 = wcsimdetector->GetPMTSize1(1);
   numpmt = wcsimdetector->GetTotalNumPmts();
+  numpmt_id0 = wcsimdetector->GetTotalNumPmts(0);
+  numpmt_id1 = wcsimdetector->GetTotalNumPmts(1);
   orientation = 0;
   
-  wcsimrootgeom-> SetWCPMTRadius(pmtradius);
+  wcsimrootgeom-> SetWCPMTRadius0(pmtradius0);
+  wcsimrootgeom-> SetWCPMTRadius1(pmtradius1);
   wcsimrootgeom-> SetOrientation(orientation);
   
   G4ThreeVector offset1= wcsimdetector->GetWCOffset();
@@ -403,8 +421,11 @@ void WCSimRunAction::FillGeoTree(){
     rot[1] = pmt->Get_orieny();
     rot[2] = pmt->Get_orienz();
     tubeNo = pmt->Get_tubeid();
+    mPMTNo = pmt->Get_mPMTid();
+    mPMT_pmtNo = pmt->Get_mPMT_pmtid();
+    collID = pmt->Get_collectionID();
     cylLoc = pmt->Get_cylocation();
-    wcsimrootgeom-> SetPMT(i,tubeNo,cylLoc,rot,pos);
+    wcsimrootgeom-> SetPMT(i,tubeNo,mPMTNo, mPMT_pmtNo, collID, cylLoc,rot,pos);
   }
   if (fpmts->size() != (unsigned int)numpmt) {
     G4cout << "Mismatch between number of pmts and pmt list in geofile.txt!!"<<G4endl;
@@ -412,7 +433,10 @@ void WCSimRunAction::FillGeoTree(){
   }
   
   wcsimrootgeom-> SetWCNumPMT(numpmt);
-  
+  wcsimrootgeom->SetWCNumPMT0(numpmt_id0);
+  wcsimrootgeom->SetWCNumPMT1(numpmt_id1);
+
+
   geoTree->Fill();
   geoTree->Write();
 }
@@ -428,21 +452,28 @@ void WCSimRunAction::FillFlatGeoTree(){
     cyl_length = wcsimdetector->GetGeo_Dm(2);
   }
   
-  pmt_radius_id = wcsimdetector->GetPMTSize1();
+  pmt_radius_id[0] = wcsimdetector->GetPMTSize1(0);
+  pmt_radius_id[1] = wcsimdetector->GetPMTSize1(1);
   pmt_radius_od = 0;                                //ToDo
-  numPMT_id = wcsimdetector->GetTotalNumPmts();
+  numPMT_id_tot = wcsimdetector->GetTotalNumPmts();
   numPMT_od = 0;                                    //ToDo
+  numPMT_id[0] = wcsimdetector->GetTotalNumPmts(0);
+  numPMT_id[1] = wcsimdetector->GetTotalNumPmts(1);
+
   orient = 0;
 
-  strcpy(pmt_id_string,wcsimdetector->GetPMTtype_ID().c_str());
-  strcpy(pmt_od_string,wcsimdetector->GetPMTtype_OD().c_str());
+  strcpy(pmt_id0_string,wcsimdetector->GetPMTtype_ID(0).c_str());
+  strcpy(pmt_id1_string,wcsimdetector->GetPMTtype_ID(1).c_str());
+  strcpy(pmt_od_string,wcsimdetector->GetPMTtype_OD(0).c_str()); //////////// WORK IN PROGRESS
+
 
   G4ThreeVector offset1= wcsimdetector->GetWCOffset();
   offset_x = offset1[0];
   offset_y = offset1[1];
   offset_z = offset1[2];
 
-  num_mPMT = numPMT_id/wcsimdetector->GetmPMT_nID();
+  num_mPMT[0] = numPMT_id[0]/wcsimdetector->GetmPMT_nID(0);
+  num_mPMT[1] = numPMT_id[1]/wcsimdetector->GetmPMT_nID(1);
   
   std::vector<WCSimPmtInfo*> *fpmts = wcsimdetector->Get_Pmts();
   WCSimPmtInfo *pmt;
@@ -458,13 +489,13 @@ void WCSimRunAction::FillFlatGeoTree(){
     phi[i] = atan2(dir_y[i],dir_x[i]);
     cylLocation[i] = UNDEFINED; // ToDo: pmt->Get_cylocation() incorrect for mPMT case
 
-    tube_id[i] = pmt->Get_tubeid();
-    mPMT_id[i] = tube_id[i]/wcsimdetector->GetmPMT_nID();
-    mPMT_pmt_id[i] = (tube_id[i]%wcsimdetector->GetmPMT_nID() == 0 ? wcsimdetector->GetmPMT_nID() : tube_id[i]%wcsimdetector->GetmPMT_nID() ); // No. 1 to nID
+    tube_id[i] = pmt->Get_tubeid();  // for all ID PMTs combined!
+    mPMT_id[i] = pmt->Get_mPMTid();        
+    mPMT_pmt_id[i] = pmt->Get_mPMT_pmtid();
     //cylLoc = pmt->Get_cylocation();
   }
 
-  if (fpmts->size() != (unsigned int)numPMT_id) {
+  if (fpmts->size() != (unsigned int)numPMT_id_tot) {
     G4cout << "Mismatch between number of pmts and pmt list in geofile.txt!!"<<G4endl;
     G4cout << fpmts->size() <<" vs. "<< numPMT_id <<G4endl;
   }

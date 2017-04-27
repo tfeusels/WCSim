@@ -53,6 +53,13 @@ void WCSimWCSD::Initialize(G4HCofThisEvent* HCE)
   // Add it to the Hit collection of this event.
   HCE->AddHitsCollection( HCID, hitsCollection );  
 
+  // So far collectionName[0] == SensitiveDetectorName
+  // keep track of situations where this is not the case
+  if(collectionName[0] != SensitiveDetectorName){
+    G4cout << "For collectionID  : " << GetCollectionID(0) << G4endl;
+    G4cout << "collName : " << collectionName[0]  << ", and SensName : " << SensitiveDetectorName << G4endl;
+    G4cout << "Make sure behaviour is as expected ! " << G4endl;
+  }
   // Initialize the Hit map to all tubes not hit.
   PMTHitMap.clear();
   // Trick to access the static maxPE variable.  This will go away with the 
@@ -107,7 +114,8 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   // they don't in skdetsim. 
   if ( particleDefinition != G4OpticalPhoton::OpticalPhotonDefinition())
     return false;
-  G4String WCIDCollectionName = fdet->GetIDCollectionName();
+ 
+
   // M Fechner : too verbose
   //  if (aStep->GetTrack()->GetTrackStatus() == fAlive)G4cout << "status is fAlive\n";
   if ((aStep->GetTrack()->GetTrackStatus() == fAlive )                                         //// TF: If absorbed in postVol, then it's killed, so will be Hit, if it's alive, then it's not a hit.
@@ -122,8 +130,11 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   
   G4StepPoint        *postStepPoint = aStep->GetPostStepPoint();
   G4VPhysicalVolume  *postVol = postStepPoint->GetPhysicalVolume();
+
   //if (thePhysical)  G4cout << " thePrePV:  " << thePhysical->GetName()  << G4endl;
   //if (postVol) G4cout << " thePostPV: " << postVol->GetName() << G4endl;
+
+  // For the record: volumeName == thePhysical->GetName() 
 
   //Optical Photon must pass through glass into PMT interior!
   // What about the other way around? TF: current interior won't keep photons alive like in reality
@@ -156,15 +167,20 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   }
   //  tubeTag << ":" << theTouchable->GetVolume(i)->GetCopyNo(); 
 
-  // Debug:
-  //  G4cout << "================================================" << G4endl;
-  //  G4cout << tubeTag.str() << std::endl;
-  //  G4cout << "================================================" << G4endl;
-
   // Get the tube ID from the tubeTag
   G4int replicaNumber = WCSimDetectorConstruction::GetTubeID(tubeTag.str());
 
-    
+  G4String * WCIDCollectionNames = fdet->GetIDCollectionNames();
+  G4int IDnoTypes = fdet->GetNoIDtypes();
+  G4int IDno = -1;
+  // Figure out which ID PMT
+  if(tubeTag.str().find(WCIDCollectionNames[0]) != std::string::npos)
+    IDno = 0;
+  else {
+    IDno = 1;
+    if(tubeTag.str().find(WCIDCollectionNames[1]) == std::string::npos)
+      G4cerr << "DID not find collection name in " << tubeTag.str() << G4endl;
+  }
   G4float theta_angle = 0.;
   G4float effectiveAngularEfficiency = 0.;
 
@@ -173,15 +189,47 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   G4float ratio = 1.;
   G4float maxQE = 0.;
   G4float photonQE = 0.;
-  if (fdet->GetPMT_QE_Method()==1 || fdet->GetPMT_QE_Method() == 4){
+  if (fdet->GetPMT_QE_Method() == 4){
     photonQE = 1.1;
+  }else if (fdet->GetPMT_QE_Method() == 1){
+    if(IDnoTypes == 1)
+      photonQE = 1.1;
+    else if(IDnoTypes == 2){
+      //// For hybrid ID : scaled in stacking action by max(QE1, QE2, lambda)
+      // here rescale based on which PMT
+      
+      //grab QE_lambda1, QE_lambda2, check which is max and rescale appropriately.
+      ratio = 1./(1.-0.25);
+      G4double QE_lambda0 = fdet->GetPMTQE(WCIDCollectionNames[0],wavelength,1,240,700, ratio);
+      G4double QE_lambda1 = fdet->GetPMTQE(WCIDCollectionNames[1],wavelength,1,240,700, ratio);
+      if(QE_lambda0 >= QE_lambda1){
+	if(IDno == 0)
+	  photonQE = 1.1;
+	else if(IDno == 1){
+	  photonQE = QE_lambda1/QE_lambda0;
+	}
+      } else if(QE_lambda0 < QE_lambda1){
+	if(IDno == 0)
+	  photonQE = QE_lambda0/QE_lambda1;
+	else if(IDno == 1){
+	  photonQE = 1.1;
+	}
+      }
+    }
   }else if (fdet->GetPMT_QE_Method()==2){
-    maxQE = fdet->GetPMTQE(WCIDCollectionName,wavelength,0,240,660,ratio);
-    photonQE = fdet->GetPMTQE(volumeName, wavelength,1,240,660,ratio);
-    photonQE = photonQE/maxQE;
+    if(IDnoTypes == 1){
+      maxQE = fdet->GetPMTQE(WCIDCollectionNames[IDno],wavelength,0,240,700,ratio);
+      photonQE = fdet->GetPMTQE(volumeName, wavelength,1,240,700,ratio);
+      photonQE = photonQE/maxQE;
+    }else if(IDnoTypes == 2){
+      G4double maxQE0 = fdet->GetPMTQE(WCIDCollectionNames[0],wavelength,0,240,700,ratio);
+      G4double maxQE1 = fdet->GetPMTQE(WCIDCollectionNames[1],wavelength,0,240,700,ratio);
+      photonQE = fdet->GetPMTQE(volumeName, wavelength,1,240,700,ratio);
+      photonQE = photonQE/std::max(maxQE0,maxQE1);
+    }
   }else if (fdet->GetPMT_QE_Method()==3){
     ratio = 1./(1.-0.25);
-    photonQE = fdet->GetPMTQE(volumeName, wavelength,1,240,660,ratio);
+    photonQE = fdet->GetPMTQE(volumeName, wavelength,1,240,700,ratio);
   }
   
   
@@ -203,6 +251,12 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
        G4HCofThisEvent* HCofEvent = currentEvent->GetHCofThisEvent();
        hitsCollection = (WCSimWCHitsCollection*)(HCofEvent->GetHC(collectionID));
       
+       // note: for hybrid ID: different PMTs, are registered as different collecionID and
+       // hence have their own hitsCollection.
+       // Below will add hits to that hitsCollection (different for each ID PMT) and
+       // register the hit PMT in the PMTHitMap, using tubeID 'replicaNumber' (for all PMTs of both ID).
+       // That is just to monitor which PMTs have been hit.
+
        // If this tube hasn't been hit add it to the collection	 
        if (this->PMTHitMap[replicaNumber] == 0)
        //if (PMTHitMap.find(replicaNumber) == PMTHitMap.end())  TF attempt to fix
@@ -246,17 +300,32 @@ void WCSimWCSD::EndOfEvent(G4HCofThisEvent* HCE)
   if (verboseLevel>0) 
   { 
     //Need to specify which collection in case multiple geometries are built:
-    G4String WCIDCollectionName = fdet->GetIDCollectionName();
+    G4String WCIDCollectionName = fdet->GetIDCollectionName(0);
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
     G4int collectionID = SDman->GetCollectionID(WCIDCollectionName);
     hitsCollection = (WCSimWCHitsCollection*)HCE->GetHC(collectionID);
     
     G4int numHits = hitsCollection->entries();
 
-    G4cout << "There are " << numHits << " tubes hit in the WC: " << G4endl;
+    G4cout << "======================================================================" << G4endl;
+    G4cout << "There are " << numHits << " tubes hit in the : " << WCIDCollectionName << G4endl;
     for (G4int i=0; i < numHits; i++) 
       (*hitsCollection)[i]->Print();
     
+    G4int IDnoTypes = fdet->GetNoIDtypes();
+    if(IDnoTypes == 2){
+      WCIDCollectionName = fdet->GetIDCollectionName(1);
+      collectionID = SDman->GetCollectionID(WCIDCollectionName);
+      hitsCollection = (WCSimWCHitsCollection*)HCE->GetHC(collectionID);
+    
+      numHits = hitsCollection->entries();
+      G4cout << "======================================================================" << G4endl;
+      G4cout << "And there are " << numHits << " tubes hit in the : " << WCIDCollectionName << G4endl;
+      for (G4int i=0; i < numHits; i++) 
+	(*hitsCollection)[i]->Print();
+    }
+    
+
       /*
     {
       if(abs((*hitsCollection)[i]->GetTubeID() - 1584)  < 5){

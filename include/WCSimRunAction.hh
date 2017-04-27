@@ -129,17 +129,19 @@ private:
   Char_t geo_type_string[20];   
   double cyl_radius;     
   double cyl_length;     
-  Char_t pmt_id_string[50];
-  double pmt_radius_id;
+  Char_t pmt_id0_string[50];
+  Char_t pmt_id1_string[50];
+  double pmt_radius_id[2];
   Char_t pmt_od_string[50];
   double pmt_radius_od;
-  int numPMT_id;
+  int numPMT_id_tot;
+  int numPMT_id[2];
   int numPMT_od;
   int orient; 
   double offset_x;
   double offset_y;
   double offset_z;
-  int num_mPMT;
+  int num_mPMT[2];           // in theory: hybrid 'can' be two types of mPMT, but not urgent.
   int tube_id[5000000];
   int mPMT_id[5000000];
   int mPMT_pmt_id[5000000];

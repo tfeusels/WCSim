@@ -62,6 +62,11 @@ struct eventNtuple{
   int totalNumHits;           // hits per event = hits per Tube x numTubesHit
   int totalNumHits_noNoise;   // hits per event = hits per Tube x numTubesHit
   
+  // [0] is for single PMTs, [1] is for multi-PMT PMTs
+  int totalNumHitsID[2];           // hits per event, separated in single PMT and mPMT PMTs
+  int totalNumHitsID_noNoise[2];   // hits per event, separated in single PMT and mPMT PMTs
+  int  numTubesHitID[2];           // Total number of tubes with hits, separated in single PMT and mPMT PMTs
+  int  numTubesHitID_noNoise[2];     // Total number of tubes with physics hits, separated in single PMT and mPMT PMTs
 
   int   totalPe[10000000];        // The totalPE recorded at each tube
   int   totalPe_noNoise[10000000];// The totalPE recorded at each tube, without DN
@@ -85,6 +90,8 @@ struct eventNtuple{
   // ToDo: extend to OD/ID when OD is implemented
   int  numDigiTubesHit;     // Number of PMTs with digitized hits
   int totalNumDigiHits;     // Digitized hits per event = hits per Tube x numTubesHit
+  int  numDigiTubesHitID[2];     // Number of PMTs with digitized hits
+  int totalNumDigiHitsID[2];     // Digitized hits per event = hits per Tube x numTubesHit
   float  sumq;              // Sum of q(readout digitized pe) in event
 
   float q[10000000];                  // The readout digitized pe
