@@ -131,6 +131,7 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* /*aRun*/)
   geomTree->Branch("Tube",tube_id,"Tube[numPMT_ID_tot]/Int_t");      //ToDo: Add OD and OD identifier
   geomTree->Branch("mPMT",mPMT_id,"mPMT[numPMT_ID_tot]/Int_t");      //mPMT: (mPMT - mPMT_PMT) pairs
   geomTree->Branch("mPMT_pmt",mPMT_pmt_id,"mPMT_pmt[numPMT_ID_tot]/Int_t");
+  geomTree->Branch("collection_id",collection_id,"collection_id[numPMT_ID_tot]/Int_t");
   geomTree->Branch("x",tube_x,"x[numPMT_ID_tot]/Double_t");
   geomTree->Branch("y",tube_y,"y[numPMT_ID_tot]/Double_t");
   geomTree->Branch("z",tube_z,"z[numPMT_ID_tot]/Double_t");
@@ -487,12 +488,13 @@ void WCSimRunAction::FillFlatGeoTree(){
     dir_z[i] = pmt->Get_orienz();
     theta[i] = acos(dir_z[i]);
     phi[i] = atan2(dir_y[i],dir_x[i]);
-    cylLocation[i] = UNDEFINED; // ToDo: pmt->Get_cylocation() incorrect for mPMT case
+    cylLocation[i] = pmt->Get_cylocation();
 
     tube_id[i] = pmt->Get_tubeid();  // for all ID PMTs combined!
     mPMT_id[i] = pmt->Get_mPMTid();        
     mPMT_pmt_id[i] = pmt->Get_mPMT_pmtid();
-    //cylLoc = pmt->Get_cylocation();
+    collection_id[i] = pmt->Get_collectionID();
+
   }
 
   if (fpmts->size() != (unsigned int)numPMT_id_tot) {

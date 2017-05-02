@@ -155,7 +155,12 @@ void WCSimDetectorConstruction::DescribeAndRegisterPMT(G4VPhysicalVolume* aPV ,i
       totalNum_mPMTs++;
     }
     
-
+    //Find the Cylinder Location (unambiguously) in the tubeTag
+    if(tubeTag.find("WCCap") != std::string::npos){
+      tubeCylLocation[totalNumPMTs] = TOPCAP;//flip later
+    } else // currently either Cap or Barrel
+      tubeCylLocation[totalNumPMTs] = WALL; 
+    
     // G4cout << tubeTag << G4endl;
     
     if ( tubeLocationMap.find(tubeTag) != tubeLocationMap.end() ) {
@@ -235,10 +240,8 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
   geoFile << setw(8)<< WCOffset(0)<< setw(8)<<WCOffset(1)<<
     setw(8) << WCOffset(2)<<G4endl;
 
-  //G4double maxZ=0.0;// used to tell if pmt is on the top/bottom cap
-  //G4double minZ=0.0;// or the barrel
-  G4int cylLocation;
 
+  CylinderLocation_t cylLocation = UNDEFINED;
 
   // clear before add new stuff in
   for (unsigned int i=0;i<fpmts.size();i++){
@@ -257,6 +260,7 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
 
     // Figure out if pmt is on top/bottom or barrel
     // print key: 0-top, 1-barrel, 2-bottom
+    /* not unambiguously valid
     if (pmtOrientation*newTransform.getTranslation() > 0)//veto pmt
     {cylLocation=3;}
     else if (pmtOrientation.z()==1.0)//bottom
@@ -265,6 +269,12 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
     {cylLocation=0;}
     else // barrel
     {cylLocation=1;}
+    */
+    // Flip if pmts on bottom cap:
+    if (pmtOrientation.z() > 0. && tubeCylLocation[tubeID] == TOPCAP) 
+      cylLocation = BOTTOMCAP;
+    else 
+      cylLocation = tubeCylLocation[tubeID];
     
     // Future: add individual dark rates to this txt file.
     geoFile.precision(9);

@@ -20,8 +20,17 @@ typedef enum EInteractionMode {
   BEAM = 0,
   COSMICS = 10,
   PARTICLEGUN = 20,
-  LASER = 30
+  LASER = 30,
+  GPS = 40
 } InteractionType_t;
+
+typedef enum ECylinderLocation{
+  UNDEFINED = -1,
+  WALL = 0,
+  TOPCAP = 10,
+  BOTTOMCAP = 20
+} CylinderLocation_t;
+  
 
 typedef enum ERandomGeneratorType {
   RANDOM_E_RANLUX=1,

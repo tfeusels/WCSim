@@ -20,9 +20,8 @@ std::map<int, G4Transform3D> WCSimDetectorConstruction::tubeIDMap;
 std::map<int, std::pair<int, int> > WCSimDetectorConstruction::mPMTIDMap;
 std::map<int, std::pair<float, float> > WCSimDetectorConstruction::DarkRateMap;
 std::map<int, int>  WCSimDetectorConstruction::collectionIDMap;
-//std::map<int, cyl_location>  WCSimDetectorConstruction::tubeCylLocation;
-//hash_map<std::string, int, hash<std::string> > 
-//WCSimDetectorConstruction::tubeLocationMap_old;    //deprecated !!
+std::map<int, CylinderLocation_t>  WCSimDetectorConstruction::tubeCylLocation;
+
 
 // std::hash is default hash function actually (http://en.cppreference.com/w/cpp/utility/hash)
 // with operator() already properly defined.

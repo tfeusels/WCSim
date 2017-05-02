@@ -4,6 +4,7 @@
 #include "WCSimPmtInfo.hh"
 #include "WCSimPMTObject.hh"
 #include "WCSimRootOptions.hh"
+#include "WCSimEnumerations.hh"
 
 #include "G4Transform3D.hh"
 #include "G4VUserDetectorConstruction.hh"
@@ -513,7 +514,7 @@ private:
   static std::map<int, std::pair< int, int > > mPMTIDMap; //maps tubeID to corresponding mPMT and mPMT_pmt ID
   static std::map<int, std::pair< float, float > > DarkRateMap; //maps tubeID to corresponding dark rate and conversion factor
   static std::map<int, int> collectionIDMap; // maps tubeID to collectionID.
-//  static std::map<int, cyl_location> tubeCylLocation;
+  static std::map<int, CylinderLocation_t> tubeCylLocation;
   //static hash_map<std::string, int, hash<std::string> >  tubeLocationMap_old;                //Deprecated
   static std::unordered_map<std::string, int, std::hash<std::string> >  tubeLocationMap; 
  

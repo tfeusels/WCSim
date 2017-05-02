@@ -11,7 +11,7 @@
 #include "WCSimRootGeom.hh"
 #include "WCSimRootOptions.hh"
 #include "WCSimDetectorConstruction.hh"
-#include "WCSimEnumerations.hh"                //ToDo: move more Enums over there!
+#include "WCSimEnumerations.hh"        
 #include "evNtuple.h"
 #include "WCSimRandomParameters.hh"
 
@@ -145,6 +145,7 @@ private:
   int tube_id[5000000];
   int mPMT_id[5000000];
   int mPMT_pmt_id[5000000];
+  int collection_id[5000000];
   double tube_x[5000000];
   double tube_y[5000000];
   double tube_z[5000000];
@@ -154,12 +155,7 @@ private:
   double theta[5000000];
   double phi[5000000];
   
-  enum CylinderLocation{
-    UNDEFINED = -1,
-    WALL = 0,
-    TOPCAP = 10,
-    BOTTOMCAP = 20
-  } cylLocation[5000000];
+  CylinderLocation_t cylLocation[5000000];
   
   //EventHeader
   int run;

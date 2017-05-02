@@ -265,7 +265,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double E         = std::sqrt((P.dot(P))+(m*m));
       //std::cout << "Energy " << E << " eV " << std::endl;
 
-      mode            = LASER; //actually could also be particle gun here. Gps and laser will be separate soon!!
+      mode            = LASER;
 
       SetVtx(vtx);
       SetBeamEnergy(E);
@@ -284,6 +284,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4ThreeVector dir  = P.unit();
       G4double E         = std::sqrt((P.dot(P))+(m*m));
       
+      mode = GPS;
       SetVtx(vtx);
       SetBeamEnergy(E);
       SetBeamDir(dir);

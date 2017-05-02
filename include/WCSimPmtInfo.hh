@@ -8,12 +8,12 @@
 /////////////////////////////////////////////////////////////////
 
 #include "TObject.h"
-
+#include "WCSimEnumerations.hh"
 class TDirectory;
 
 class WCSimPmtInfo : public TObject {
 private:
-  Int_t cylocation;
+  CylinderLocation_t cylocation;
   Double_t trans_x;
   Double_t trans_y;
   Double_t trans_z;
@@ -30,13 +30,13 @@ private:
 public: 
   WCSimPmtInfo();
   
-  WCSimPmtInfo(Int_t i, Double_t t1, Double_t t2, Double_t t3, Double_t o1, Double_t o2, Double_t o3, Int_t tubeid);
+  WCSimPmtInfo(CylinderLocation_t i, Double_t t1, Double_t t2, Double_t t3, Double_t o1, Double_t o2, Double_t o3, Int_t tubeid);
 
-  WCSimPmtInfo(Int_t i, Double_t t1, Double_t t2, Double_t t3, Double_t o1, Double_t o2, Double_t o3, Int_t tubeid,  Int_t mPMTid, Int_t mPMT_pmtid);
+  WCSimPmtInfo(CylinderLocation_t i, Double_t t1, Double_t t2, Double_t t3, Double_t o1, Double_t o2, Double_t o3, Int_t tubeid,  Int_t mPMTid, Int_t mPMT_pmtid);
   
   virtual ~WCSimPmtInfo();
 
-  Int_t Get_cylocation(){return cylocation;}
+  CylinderLocation_t Get_cylocation(){return cylocation;}
   Double_t Get_transx() {return trans_x;}
   Double_t Get_transy() {return trans_y;}
   Double_t Get_transz() {return trans_z;}
