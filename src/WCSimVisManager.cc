@@ -133,9 +133,9 @@ void WCSimVisManager::RegisterGraphicsSystems () {
   mymodel->Set("e-","blue");
   mymodel->Set("mu-","white");
   mymodel->Set("e+","red");
-  mymodel->Set("mu+","white");
+  mymodel->Set("mu+",G4Colour(0.78, 0.78, 0.78));  //to distinguish mu+ from mu- on black background.
   mymodel->Set("proton","magenta");
-  mymodel->Set("neutron","Grey");
+  mymodel->Set("neutron","cyan");
 
   if (fVerbose > 0) {
     G4cout <<

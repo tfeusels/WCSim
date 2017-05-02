@@ -19,6 +19,9 @@
 #include "G4Navigator.hh"
 #include "G4TransportationManager.hh"
 
+#include "G4PhysicalConstants.hh"
+#include "G4SystemOfUnits.hh"
+
 using std::vector;
 using std::string;
 using std::fstream;
