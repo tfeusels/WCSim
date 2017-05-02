@@ -200,6 +200,31 @@ void WCSimDetectorConstruction::Cylinder_60x74_20inchBandL_40perCent()
   InitSinglePMT();
 }
 
+void WCSimDetectorConstruction::Cylinder_60x74_20inchBandL_20perCent()
+{ 
+  WCDetectorName = "Cylinder_60x74_20inchBandL_20perCent";
+  WCIDCollectionName[0] = WCDetectorName +"-glassFaceWCPMT";
+  WCSimPMTObject * PMT = CreatePMTObject("BoxandLine20inchHQE", WCIDCollectionName[0]);
+  WCPMTName[0]           = PMT->GetPMTName();
+  WCPMTExposeHeight[0]   = PMT->GetExposeHeight();
+  WCPMTRadius[0]         = PMT->GetRadius();
+  WCIDDiameter          = 74.0*m;
+  WCIDHeight            = 60.0*m;
+  WCBarrelPMTOffset     = WCPMTRadius[0]; //offset from vertical
+  WCPMTperCellHorizontal= 4;
+  WCPMTperCellVertical  = 3;
+  WCPMTPercentCoverage  = 20.0;
+  WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/(10.0*WCPMTRadius[0]));
+  WCBarrelNRings           = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))
+                                      /WCPMTperCellVertical));
+  WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal); // distance between centers of top and bottom pmts
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius[0];
+  WCBlackSheetThickness = 2.0*cm;
+  WCAddGd               = false;
+
+  InitSinglePMT();
+}
+
 
 void WCSimDetectorConstruction::Cylinder_12inchHPD_15perCent()
 { 
