@@ -20,7 +20,7 @@
 #include  "WCSimMultiPMTParameterisation.hh"
 #include  "G4PVParameterised.hh"
 
-
+using namespace CLHEP;
 //mPMT logical volume construction.
 //A function of the WCSimDetectorConstruction class
 

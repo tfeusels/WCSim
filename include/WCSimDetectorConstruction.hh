@@ -167,12 +167,12 @@ public:
       vessel_tot_height = WCPMTRadius[i];
     WCBarrelPMTOffset = vessel_tot_height;                          // BarrelPMTOffset needs PMT/mPMT height
     if(!fix_nModules){
-      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/(10.0*vessel_radius[i]));
+      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(CLHEP::pi*WCPMTPercentCoverage)/(10.0*vessel_radius[i]));
       if(WCBarrelNumPMTHorizontal < 1)
 	G4cerr << "Bug in dimensions as less than 1 BarrelPMT specified" << G4endl;
-      WCBarrelNRings           = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))
+      WCBarrelNRings           = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(CLHEP::pi*WCIDDiameter)))
 					/WCPMTperCellVertical));
-      WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal); 
+      WCCapPMTSpacing       = (CLHEP::pi*WCIDDiameter/WCBarrelNumPMTHorizontal); 
       WCCapEdgeLimit = WCIDDiameter/2.0 - vessel_tot_height;          // CapEdgeLimit needs PMT/mPMT height
     }
   }                          
