@@ -101,6 +101,8 @@ public:
   virtual ~WCSimRootCherenkovHit() { }
 
   Int_t GetTubeID()       const { return fTubeID;}
+  Int_t GetmPMTID()       const { return fmPMTID;}
+  Int_t GetmPMT_PMTID()       const { return fmPMT_PMTID;}
   Int_t GetTotalPe(int i) const { return (i<2) ? fTotalPe[i]: 0;}
 
   ClassDef(WCSimRootCherenkovHit,2)  
