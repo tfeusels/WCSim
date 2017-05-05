@@ -480,7 +480,7 @@ void WCSimDetectorConstruction::Cylinder_60x74_hybrid_40perCent()
 
 
   // ID PMT 2
-  WCIDCollectionName[1] = WCDetectorName +"-glassFaceWCPMT"; 
+  WCIDCollectionName[1] = WCDetectorName +"-glassFaceWCmPMT"; 
   mPMT_ID_PMT[1] = "PMT3inchR12199_02"; 
   mPMT_OD_PMT[1] = "PMT3inchR12199_02";          
   

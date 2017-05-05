@@ -61,6 +61,7 @@ void WCSimWCHit::Draw()
     // volumeName should be compared to ID/OD CollectionName of the SensitiveDetector
     // instead of accessing those exactly here, just grab the substring: It should be "a" glassFaceWCPMT. Later optional check for OD?
     if ( volumeName.find("glassFaceWCPMT") != std::string::npos ||
+	 volumeName.find("glassFaceWCmPMT") != std::string::npos ||
 	 volumeName.find("glassFaceWCPMT_refl") != std::string::npos) //isn't this deprecated??
     { 
 

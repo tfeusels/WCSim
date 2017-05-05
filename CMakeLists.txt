@@ -98,14 +98,14 @@ target_link_libraries(WCSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} WCSimRoot Tree
 # relies on these scripts being in the current working directory.
 #
 set(WCSIM_SCRIPTS
-  jobOptions.mac
+  macros/jobOptions.mac
   WCSim.mac
-  daq.mac
-  visOGLSX.mac
-  visOGLQT.mac
-  visRayTracer.mac
-  mPMT.mac
-  tuning_parameters.mac
+  macros/daq.mac
+  macros/visOGLSX.mac
+  macros/visOGLQT.mac
+  macros/visRayTracer.mac
+  macros/mPMT.mac
+  macros/tuning_parameters.mac
   )
 
 foreach(_script ${WCSIM_SCRIPTS})
@@ -126,5 +126,3 @@ endforeach()
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 #install(TARGETS WCSim DESTINATION bin)
-
-
