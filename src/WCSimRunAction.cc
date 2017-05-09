@@ -413,7 +413,7 @@ void WCSimRunAction::FillGeoTree(){
   
   std::vector<WCSimPmtInfo*> *fpmts = wcsimdetector->Get_Pmts();
   WCSimPmtInfo *pmt;
-  for (unsigned int i=0;i!=fpmts->size();i++){
+  for (unsigned int i=0; i < fpmts->size();i++){
     pmt = ((WCSimPmtInfo*)fpmts->at(i));
     pos[0] = pmt->Get_transx();
     pos[1] = pmt->Get_transy();
@@ -478,7 +478,7 @@ void WCSimRunAction::FillFlatGeoTree(){
   
   std::vector<WCSimPmtInfo*> *fpmts = wcsimdetector->Get_Pmts();
   WCSimPmtInfo *pmt;
-  for (unsigned int i=0;i!=fpmts->size();i++){
+  for (unsigned int i=0;i < fpmts->size();i++){
     pmt = ((WCSimPmtInfo*)fpmts->at(i));
     tube_x[i] = pmt->Get_transx();
     tube_y[i] = pmt->Get_transy();
