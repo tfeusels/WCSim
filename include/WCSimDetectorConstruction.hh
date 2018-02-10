@@ -182,12 +182,12 @@ public:
       vessel_tot_height = WCPMTRadius;
     WCBarrelPMTOffset = vessel_tot_height;                          // BarrelPMTOffset needs PMT/mPMT height
     if(!fix_nModules){
-      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(M_PI*WCPMTPercentCoverage)/(10.0*vessel_radius));
+      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(CLHEP::pi*WCPMTPercentCoverage)/(10.0*vessel_radius));
       if(WCBarrelNumPMTHorizontal < 1)
 	G4cerr << "Bug in dimensions as less than 1 BarrelPMT specified" << G4endl;
-      WCBarrelNRings           = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(M_PI*WCIDDiameter)))
+      WCBarrelNRings           = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(CLHEP::pi*WCIDDiameter)))
       					/WCPMTperCellVertical));
-      WCCapPMTSpacing       = (M_PI*WCIDDiameter/WCBarrelNumPMTHorizontal); 
+      WCCapPMTSpacing       = (CLHEP::pi*WCIDDiameter/WCBarrelNumPMTHorizontal); 
       WCCapEdgeLimit = WCIDDiameter/2.0 - vessel_tot_height;          // CapEdgeLimit needs PMT/mPMT height
     }
   }                          
@@ -267,8 +267,8 @@ public:
     WCPMTRadius = PMT->GetRadius();
     
     WCBarrelPMTOffset     = WCPMTRadius;
-    WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(M_PI*WCPMTPercentCoverage/100.0)/WCPMTRadius);
-    WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(M_PI*WCIDDiameter)))/WCPMTperCellVertical));
+    WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(CLHEP::pi*WCPMTPercentCoverage/100.0)/WCPMTRadius);
+    WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(CLHEP::pi*WCIDDiameter)))/WCPMTperCellVertical));
     WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
     
 
@@ -283,11 +283,11 @@ public:
     //     are affected.
     WCPMTPercentCoverage = cover;
     if(WCDetectorName == "NuPRISM_mPMT"){
-      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(M_PI*WCPMTPercentCoverage/100.0)/vessel_radius);
+      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(CLHEP::pi*WCPMTPercentCoverage/100.0)/vessel_radius);
     } else
-      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(M_PI*WCPMTPercentCoverage/100.0)/WCPMTRadius);
-    WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(M_PI*WCIDDiameter)))/WCPMTperCellVertical));
-    WCCapPMTSpacing       = (M_PI*WCIDDiameter/WCBarrelNumPMTHorizontal);
+      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(CLHEP::pi*WCPMTPercentCoverage/100.0)/WCPMTRadius);
+    WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(CLHEP::pi*WCIDDiameter)))/WCPMTperCellVertical));
+    WCCapPMTSpacing       = (CLHEP::pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
   }
   G4double GetPMTCoverage() {return WCPMTPercentCoverage;}
 
@@ -296,7 +296,7 @@ public:
   void   SetDetectorHeight(G4double height) {
     WCIDHeight = height;
     // Affects Number of Barrel rings:
-    WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(M_PI*WCIDDiameter)))/WCPMTperCellVertical));
+    WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(CLHEP::pi*WCIDDiameter)))/WCPMTperCellVertical));
   }
   G4double GetWCIDHeight(){ return WCIDHeight; }
 
@@ -307,15 +307,15 @@ public:
     WCIDDiameter = diameter;
     // Affects several cylinder parameters:
     if(WCDetectorName == "NuPRISM_mPMT"){
-      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(M_PI*WCPMTPercentCoverage/100.0)/vessel_radius);
+      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(CLHEP::pi*WCPMTPercentCoverage/100.0)/vessel_radius);
       WCCapEdgeLimit        = WCIDDiameter/2.0 - vessel_radius;
     } else{
-      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(M_PI*WCPMTPercentCoverage/100.0)/WCPMTRadius);
+      WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(CLHEP::pi*WCPMTPercentCoverage/100.0)/WCPMTRadius);
       WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
     }
     
-    WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(M_PI*WCIDDiameter)))/WCPMTperCellVertical));
-    WCCapPMTSpacing       = (M_PI*WCIDDiameter/WCBarrelNumPMTHorizontal);
+    WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-2*WCBarrelPMTOffset)/(CLHEP::pi*WCIDDiameter)))/WCPMTperCellVertical));
+    WCCapPMTSpacing       = (CLHEP::pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
     
 
 }
